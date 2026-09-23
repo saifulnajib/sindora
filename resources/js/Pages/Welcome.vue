@@ -143,7 +143,20 @@ function getMedaliBadge(medali) {
 </script>
 
 <template>
-    <Head title="SINDORA — Dinas Pemuda dan Olahraga Kota Tanjungpinang" />
+    <Head>
+        <title>SINDORA — Dinas Pemuda dan Olahraga Kota Tanjungpinang</title>
+        <meta name="description" content="Portal resmi data atlet binaan, pelatih bersertifikasi, dan statistik perolehan medali kejuaraan Dinas Pemuda dan Olahraga Pemerintah Kota Tanjungpinang." />
+        <meta property="og:title" content="SINDORA — Database Olahraga & Prestasi Kota Tanjungpinang" />
+        <meta property="og:description" content="Portal resmi data atlet binaan, pelatih bersertifikasi, dan statistik perolehan medali kejuaraan Dinas Pemuda dan Olahraga Pemerintah Kota Tanjungpinang." />
+        <meta property="og:image" content="/logo-tanjungpinang.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="SINDORA — Database Olahraga & Prestasi Kota Tanjungpinang" />
+        <meta name="twitter:description" content="Portal resmi data atlet binaan, pelatih bersertifikasi, dan statistik perolehan medali kejuaraan Dinas Pemuda dan Olahraga Pemerintah Kota Tanjungpinang." />
+        <meta name="twitter:image" content="/logo-tanjungpinang.png" />
+        <link rel="icon" type="image/png" href="/logo-tanjungpinang.png" />
+        <link rel="shortcut icon" type="image/png" href="/logo-tanjungpinang.png" />
+    </Head>
 
     <div class="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white dark:bg-slate-950 dark:text-slate-100">
         <!-- TOP NAVIGATION BAR -->
@@ -151,11 +164,7 @@ function getMedaliBadge(medali) {
             <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
                 <!-- Logo & Brand -->
                 <div class="flex items-center gap-3">
-                    <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 shadow-md shadow-blue-500/25">
-                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871a2.25 2.25 0 0 1-1.591-.659L12 11.25m0 0l-1.914 1.916a2.25 2.25 0 0 1-1.591.659h-.87C7.003 13.825 6.5 14.329 6.5 14.95v3.8m5.5-7.5V3.75m0 0a3 3 0 0 1 3 3v.75m-3-3.75a3 3 0 0 0-3 3v.75m6 0a3 3 0 0 1 3 3v.75a3 3 0 0 1-3 3h-.75m-6-7.5a3 3 0 0 0-3 3v.75a3 3 0 0 0 3 3h.75" />
-                        </svg>
-                    </div>
+                    <img src="/logo-tanjungpinang.png" alt="Logo Kota Tanjungpinang" class="h-11 w-auto object-contain drop-shadow-sm" />
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="text-xl font-black tracking-tight text-blue-900 dark:text-white">SINDORA</span>
