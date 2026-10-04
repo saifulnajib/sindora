@@ -21,7 +21,21 @@ class AuthenticatedSessionController extends Controller
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
+            'isLocalEnv' => $this->checkIsLocalEnv(),
         ]);
+    }
+
+    private function checkIsLocalEnv(): bool
+    {
+        if (file_exists(base_path('.env'))) {
+            $envContent = file_get_contents(base_path('.env'));
+            if (preg_match('/^APP_ENV=(.*)$/m', $envContent, $matches)) {
+                $val = trim(trim($matches[1]), '"\'');
+                return strtolower($val) === 'local';
+            }
+        }
+
+        return app()->environment('local');
     }
 
     /**

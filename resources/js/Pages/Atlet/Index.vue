@@ -1,5 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import ConfirmModal from '@/Components/ConfirmModal.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 
@@ -15,16 +16,61 @@ const search = ref(props.filters?.search ?? '');
 const klub_id = ref(props.filters?.klub_id ?? '');
 const cabor_id = ref(props.filters?.cabor_id ?? '');
 const status_pembinaan = ref(props.filters?.status_pembinaan ?? '');
+const verification_status = ref(props.filters?.verification_status ?? '');
 
 let t = null;
-watch([search, klub_id, cabor_id, status_pembinaan], ([s, kid, cid, sp]) => {
+watch([search, klub_id, cabor_id, status_pembinaan, verification_status], ([s, kid, cid, sp, vs]) => {
     clearTimeout(t);
-    t = setTimeout(() => router.get(route('atlets.index'), { search: s, klub_id: kid, cabor_id: cid, status_pembinaan: sp }, { preserveState: true, replace: true }), 300);
+    t = setTimeout(() => router.get(route('atlets.index'), { search: s, klub_id: kid, cabor_id: cid, status_pembinaan: sp, verification_status: vs }, { preserveState: true, replace: true }), 300);
 });
 
 function destroyRow(id) {
     if (!confirm('Hapus atlet ini?')) return;
     router.delete(route('atlets.destroy', id));
+}
+
+const showSubmitModal = ref(false);
+const submittingAtlet = ref(null);
+const isSubmitting = ref(false);
+
+function openSubmitModal(atlet) {
+    submittingAtlet.value = atlet;
+    showSubmitModal.value = true;
+}
+
+function confirmSubmit() {
+    if (!submittingAtlet.value) return;
+    router.post(route('verifikasi.submit'), {
+        entity_type: 'atlet',
+        ids: [submittingAtlet.value.id],
+    }, {
+        preserveScroll: true,
+        onStart: () => { isSubmitting.value = true; },
+        onSuccess: () => { showSubmitModal.value = false; },
+        onFinish: () => { isSubmitting.value = false; },
+    });
+}
+
+function getVerificationBadge(status) {
+    const badges = {
+        draft: 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200',
+        menunggu_verifikasi: 'bg-yellow-100 text-yellow-800',
+        terverifikasi: 'bg-green-100 text-green-800',
+        perlu_perbaikan: 'bg-orange-100 text-orange-800',
+        ditolak: 'bg-red-100 text-red-800',
+    };
+    return badges[status] ?? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200';
+}
+
+function getVerificationLabel(status) {
+    const labels = {
+        draft: 'Draft',
+        menunggu_verifikasi: 'Menunggu Verifikasi',
+        terverifikasi: 'Terverifikasi',
+        perlu_perbaikan: 'Perlu Perbaikan',
+        ditolak: 'Ditolak',
+    };
+    return labels[status] ?? status;
 }
 </script>
 
@@ -55,13 +101,21 @@ function destroyRow(id) {
                             <option value="provinsi">Provinsi</option>
                             <option value="nasional">Nasional</option>
                         </select>
+                        <select v-model="verification_status" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-600 text-sm">
+                            <option value="">Semua Verifikasi</option>
+                            <option value="draft">Draft</option>
+                            <option value="menunggu_verifikasi">Menunggu Verifikasi</option>
+                            <option value="terverifikasi">Terverifikasi</option>
+                            <option value="perlu_perbaikan">Perlu Perbaikan</option>
+                            <option value="ditolak">Ditolak</option>
+                        </select>
                         <span class="ml-auto self-center text-xs text-gray-500 dark:text-gray-400">Total: {{ atlets.meta?.total ?? 0 }}</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-gray-50 dark:bg-gray-700 text-xs uppercase text-gray-500 dark:text-gray-300">
                                 <tr>
-                                    <th class="px-4 py-3">Foto</th> <th class="px-4 py-3">Nama</th> <th class="px-4 py-3">NIK</th> <th class="px-4 py-3">Klub</th> <th class="px-4 py-3">Cabor</th> <th class="px-4 py-3">Status</th> <th class="px-4 py-3 text-right">Aksi</th>
+                                    <th class="px-4 py-3">Foto</th> <th class="px-4 py-3">Nama</th> <th class="px-4 py-3">NIK</th> <th class="px-4 py-3">Klub</th> <th class="px-4 py-3">Cabor</th> <th class="px-4 py-3">Status</th> <th class="px-4 py-3">Verifikasi</th> <th class="px-4 py-3 text-right">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -72,13 +126,21 @@ function destroyRow(id) {
                                     <td class="px-4 py-3 font-medium dark:text-gray-100">{{ a.nama }}</td>
                                     <td class="px-4 py-3 font-mono text-xs" :title="a.can_view_sensitive ? 'full' : 'masked'">{{ a.nik }}</td>
                                     <td class="px-4 py-3">{{ a.klub?.nama ?? '—' }}</td> <td class="px-4 py-3">{{ a.cabor?.nama ?? '—' }}</td> <td class="px-4 py-3"><span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">{{ a.status_pembinaan ?? '—' }}</span></td>
+                                    <td class="px-4 py-3">
+                                        <span :class="['rounded-full px-2 py-0.5 text-xs font-medium dark:text-gray-100', a.verification_badge ?? getVerificationBadge(a.verification_status)]">
+                                            {{ a.verification_label ?? getVerificationLabel(a.verification_status) }}
+                                        </span>
+                                    </td>
                                     <td class="px-4 py-3 text-right">
-                                        <Link :href="route('atlets.show', a.id)" class="mr-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Lihat</Link>
-                                        <Link v-if="can?.manage" :href="route('atlets.edit', a.id)" class="mr-2 text-sm font-medium dark:text-gray-100 text-blue-600 hover:text-blue-800">Edit</Link>
-                                        <button v-if="can?.manage" @click="destroyRow(a.id)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
+                                        <div class="flex justify-end gap-2">
+                                            <Link :href="route('atlets.show', a.id)" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Lihat</Link>
+                                            <Link v-if="can?.manage" :href="route('atlets.edit', a.id)" class="text-sm font-medium dark:text-gray-100 text-blue-600 hover:text-blue-800">Edit</Link>
+                                            <button v-if="can?.manage" @click="destroyRow(a.id)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
+                                            <button v-if="can?.manage && (a.verification_status === 'draft' || a.verification_status === 'perlu_perbaikan')" @click="openSubmitModal(a)" class="rounded bg-amber-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-amber-600">Ajukan Verifikasi</button>
+                                        </div>
                                     </td>
                                 </tr>
-                                <tr v-if="!atlets.data || atlets.data.length===0"><td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Tidak ada data.</td></tr>
+                                <tr v-if="!atlets.data || atlets.data.length===0"><td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Tidak ada data.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -86,5 +148,17 @@ function destroyRow(id) {
                 </div>
             </div>
         </div>
+
+        <ConfirmModal
+            :show="showSubmitModal"
+            title="Ajukan Verifikasi Atlet"
+            :message="`Apakah Anda yakin ingin mengajukan atlet '${submittingAtlet?.nama}' untuk verifikasi? Data akan masuk ke antrian verifikator.`"
+            confirm-text="Ya, Ajukan"
+            cancel-text="Batal"
+            type="warning"
+            :processing="isSubmitting"
+            @close="showSubmitModal = false"
+            @confirm="confirmSubmit"
+        />
     </AuthenticatedLayout>
 </template>

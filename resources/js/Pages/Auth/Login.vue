@@ -4,8 +4,8 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { ref, computed, onMounted } from 'vue';
 
 const isDark = ref(false);
 function applyTheme(dark) {
@@ -25,10 +25,14 @@ onMounted(() => {
     } catch(e) {}
 });
 
-defineProps({
+const props = defineProps({
     canResetPassword: Boolean,
     status: String,
+    isLocalEnv: Boolean,
 });
+
+const page = usePage();
+const isLocal = computed(() => props.isLocalEnv ?? page.props.isLocalEnv ?? false);
 
 const form = useForm({
     email: '',
@@ -187,8 +191,11 @@ const fillForm = (acc) => {
                     <div class="flex items-center gap-2 text-[11px] tracking-[0.14em] text-white/60 font-semibold">
                         <span class="h-px w-6 bg-white/30" /> SPRINT 1 — Fondasi & RBAC
                     </div>
-                    <div class="rounded-xl bg-black/20 p-3 text-xs leading-5 text-white/70 ring-1 ring-white/10">
+                    <div v-if="isLocal" class="rounded-xl bg-black/20 p-3 text-xs leading-5 text-white/70 ring-1 ring-white/10">
                         Semua akun demo password: <span class="font-mono font-bold text-white">password</span> • Quick login aktif di env local
+                    </div>
+                    <div v-else class="rounded-xl bg-black/20 p-3 text-xs leading-5 text-white/70 ring-1 ring-white/10">
+                        Silakan gunakan kredensial akun terdaftar untuk mengakses sistem SINDORA.
                     </div>
                 </div>
             </div>
@@ -210,73 +217,77 @@ const fillForm = (acc) => {
                 <div class="rounded-[20px] bg-white dark:bg-gray-800 shadow-[0_8px_40px_rgba(15,42,107,0.08)] ring-1 ring-slate-200 dark:ring-gray-700 overflow-hidden">
                     <div class="px-6 sm:px-8 pt-7 pb-2">
                         <h2 class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Masuk ke SINDORA</h2>
-                        <p class="mt-1 text-sm text-slate-500 dark:text-gray-400">Gunakan akun demo atau login manual. Data → Prestasi.</p>
+                        <p class="mt-1 text-sm text-slate-500 dark:text-gray-400">
+                            {{ isLocal ? 'Gunakan akun demo atau login manual. Data → Prestasi.' : 'Silakan masukkan kredensial akun Anda.' }}
+                        </p>
                     </div>
 
                     <div v-if="status" class="mx-6 sm:mx-8 mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium dark:text-gray-100 text-emerald-700 ring-1 ring-emerald-200">
                         {{ status }}
                     </div>
 
-                    <!-- Quick Login -->
-                    <div class="px-6 sm:px-8 pt-5">
-                        <div class="flex items-center justify-between">
-                            <div class="text-[11px] font-bold tracking-[0.14em] text-slate-500">QUICK LOGIN — 1 KLIK (DEMO)</div>
-                            <span class="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold tracking-widest text-amber-700 ring-1 ring-amber-200">LOCAL ONLY</span>
-                        </div>
-                        <div class="mt-3 grid grid-cols-1 gap-2.5">
-                            <button
-                                v-for="acc in quickAccounts"
-                                :key="acc.email"
-                                type="button"
-                                @click="quickLogin(acc)"
-                                :disabled="!!quickLoading"
-                                class="group flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-3 text-left shadow-sm transition hover:border-slate-300 dark:hover:border-gray-600 hover:shadow-md hover:-translate-y-[1px] disabled:opacity-60"
-                            >
-                                <div :class="['flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow', acc.color]">{{ acc.icon }}</div>
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-[13px] font-extrabold leading-none text-slate-900 dark:text-white">{{ acc.label }}</span>
-                                        <span class="rounded-full bg-slate-100 dark:bg-gray-700 px-1.5 py-0.5 text-[10px] font-bold tracking-widest text-slate-600 dark:text-gray-300">{{ acc.sublabel }}</span>
+                    <!-- Quick Login (Hanya ditampilkan jika APP_ENV adalah local) -->
+                    <template v-if="isLocal">
+                        <div class="px-6 sm:px-8 pt-5">
+                            <div class="flex items-center justify-between">
+                                <div class="text-[11px] font-bold tracking-[0.14em] text-slate-500">QUICK LOGIN — 1 KLIK (DEMO)</div>
+                                <span class="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold tracking-widest text-amber-700 ring-1 ring-amber-200">LOCAL ONLY</span>
+                            </div>
+                            <div class="mt-3 grid grid-cols-1 gap-2.5">
+                                <button
+                                    v-for="acc in quickAccounts"
+                                    :key="acc.email"
+                                    type="button"
+                                    @click="quickLogin(acc)"
+                                    :disabled="!!quickLoading"
+                                    class="group flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-3 text-left shadow-sm transition hover:border-slate-300 dark:hover:border-gray-600 hover:shadow-md hover:-translate-y-[1px] disabled:opacity-60"
+                                >
+                                    <div :class="['flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow', acc.color]">{{ acc.icon }}</div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[13px] font-extrabold leading-none text-slate-900 dark:text-white">{{ acc.label }}</span>
+                                            <span class="rounded-full bg-slate-100 dark:bg-gray-700 px-1.5 py-0.5 text-[10px] font-bold tracking-widest text-slate-600 dark:text-gray-300">{{ acc.sublabel }}</span>
+                                        </div>
+                                        <div class="text-[11px] text-slate-500 dark:text-gray-400 truncate">{{ acc.desc }} • {{ acc.email }}</div>
                                     </div>
-                                    <div class="text-[11px] text-slate-500 dark:text-gray-400 truncate">{{ acc.desc }} • {{ acc.email }}</div>
-                                </div>
-                                <div class="ml-2 flex items-center gap-1.5">
-                                    <span v-if="quickLoading === acc.email" class="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
-                                    <span v-else class="rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-bold tracking-widest text-white group-hover:bg-black">MASUK →</span>
-                                </div>
-                            </button>
+                                    <div class="ml-2 flex items-center gap-1.5">
+                                        <span v-if="quickLoading === acc.email" class="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
+                                        <span v-else class="rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-bold tracking-widest text-white group-hover:bg-black">MASUK →</span>
+                                    </div>
+                                </button>
+                            </div>
+                            <div class="mt-2 flex gap-2">
+                                <button
+                                    v-for="acc in quickAccounts"
+                                    :key="'fill-'+acc.email"
+                                    type="button"
+                                    @click="fillForm(acc)"
+                                    class="rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-bold tracking-widest text-slate-600 ring-1 ring-slate-200 hover:bg-white"
+                                >
+                                    Isi {{ acc.key }}
+                                </button>
+                            </div>
+                            <div class="mt-3 hidden"> <!-- fallback fill triggers for keyboard users handled below --> </div>
                         </div>
-                        <div class="mt-2 flex gap-2">
-                            <button
-                                v-for="acc in quickAccounts"
-                                :key="'fill-'+acc.email"
-                                type="button"
-                                @click="fillForm(acc)"
-                                class="rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-bold tracking-widest text-slate-600 ring-1 ring-slate-200 hover:bg-white"
-                            >
-                                Isi {{ acc.key }}
-                            </button>
+                        <div class="px-6 sm:px-8 py-4">
+                            <div class="flex items-center gap-3">
+                                <span class="h-px flex-1 bg-slate-200 dark:bg-gray-700" />
+                                <span class="text-[11px] font-bold tracking-[0.14em] text-slate-400 dark:text-gray-500">ATAU LOGIN MANUAL</span>
+                                <span class="h-px flex-1 bg-slate-200 dark:bg-gray-700" />
+                            </div>
                         </div>
-                        <div class="mt-3 hidden"> <!-- fallback fill triggers for keyboard users handled below --> </div>
-                    </div>
-                    <div class="px-6 sm:px-8 py-4">
-                        <div class="flex items-center gap-3">
-                            <span class="h-px flex-1 bg-slate-200" />
-                            <span class="text-[11px] font-bold tracking-[0.14em] text-slate-400">ATAU LOGIN MANUAL</span>
-                            <span class="h-px flex-1 bg-slate-200" />
-                        </div>
-                    </div>
+                    </template>
 
                     <!-- Manual Form -->
-                    <form @submit.prevent="submit" class="px-6 sm:px-8 pb-6 space-y-4">
+                    <form @submit.prevent="submit" class="px-6 sm:px-8 pb-6 space-y-4" :class="{ 'pt-4': !isLocal }">
                         <div>
-                            <InputLabel for="email" value="Email" class="text-slate-700" />
+                            <InputLabel for="email" value="Email" class="text-slate-700 dark:text-gray-300" />
                             <TextInput id="email" type="email" class="mt-1.5 block w-full rounded-xl border-slate-200 focus:border-[#1e3a8a] focus:ring-[#1e3a8a]" v-model="form.email" required autofocus autocomplete="username" placeholder="nama@sindora.test" />
                             <InputError class="mt-2" :message="form.errors.email" />
                         </div>
                         <div>
                             <div class="flex items-center justify-between">
-                                <InputLabel for="password" value="Password" class="text-slate-700" />
+                                <InputLabel for="password" value="Password" class="text-slate-700 dark:text-gray-300" />
                                 <Link v-if="canResetPassword" :href="route('password.request')" class="text-xs font-semibold text-slate-500 hover:text-slate-700 underline">Lupa password?</Link>
                             </div>
                             <TextInput id="password" type="password" class="mt-1.5 block w-full rounded-xl border-slate-200 focus:border-[#1e3a8a] focus:ring-[#1e3a8a]" v-model="form.password" required autocomplete="current-password" placeholder="••••••••" />
@@ -284,8 +295,8 @@ const fillForm = (acc) => {
                         </div>
                         <label class="flex items-center gap-2">
                             <Checkbox name="remember" v-model:checked="form.remember" />
-                            <span class="text-sm text-slate-600">Ingat saya</span>
-                            <span class="ml-auto text-xs text-slate-400">Password demo: <span class="font-mono font-bold text-slate-700">password</span></span>
+                            <span class="text-sm text-slate-600 dark:text-slate-300">Ingat saya</span>
+                            <span v-if="isLocal" class="ml-auto text-xs text-slate-400">Password demo: <span class="font-mono font-bold text-slate-700 dark:text-slate-200">password</span></span>
                         </label>
 
                         <PrimaryButton class="w-full justify-center rounded-xl bg-[#1e3a8a] dark:bg-blue-700 py-3 text-[13px] font-extrabold tracking-widest hover:bg-[#162f6b] focus:bg-[#162f6b]" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
@@ -299,12 +310,12 @@ const fillForm = (acc) => {
                         </div>
                     </form>
 
-                    <div class="bg-slate-50 px-6 sm:px-8 py-3 flex items-center justify-between text-[11px] leading-4 text-slate-500 ring-1 ring-slate-100">
+                    <div class="bg-slate-50 dark:bg-gray-800/80 px-6 sm:px-8 py-3 flex items-center justify-between text-[11px] leading-4 text-slate-500 ring-1 ring-slate-100 dark:ring-gray-700">
                         <span>© 2026 Dispora Kota Tanjungpinang • SINDORA v1 — Sprint 1</span>
                         <span class="hidden sm:inline">DATA → INFORMASI → ANALISIS → KEBIJAKAN → PRESTASI</span>
                     </div>
                 </div>
-                <div class="mt-3 text-center text-[11px] text-slate-400">Quick login hanya untuk akun demo di environment local. Di production gunakan password.</div>
+                <div v-if="isLocal" class="mt-3 text-center text-[11px] text-slate-400">Quick login hanya untuk akun demo di environment local. Di production gunakan password.</div>
             </div>
         </div>
     </div>

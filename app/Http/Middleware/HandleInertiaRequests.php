@@ -30,8 +30,20 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $isLocalEnv = (function () {
+            if (file_exists(base_path('.env'))) {
+                $envContent = file_get_contents(base_path('.env'));
+                if (preg_match('/^APP_ENV=(.*)$/m', $envContent, $matches)) {
+                    $val = trim(trim($matches[1]), '"\'');
+                    return strtolower($val) === 'local';
+                }
+            }
+            return app()->environment('local');
+        })();
+
         return [
             ...parent::share($request),
+            'isLocalEnv' => $isLocalEnv,
             'auth' => [
                 'user' => $request->user() ? [
                     'id' => $request->user()->id,

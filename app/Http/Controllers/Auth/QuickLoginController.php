@@ -17,9 +17,9 @@ class QuickLoginController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        // Guard: disable in production unless SINDORA_QUICK_LOGIN=true
-        if (app()->isProduction() && ! config('app.quick_login_enabled', false)) {
-            abort(403, 'Quick login disabled in production');
+        // Guard: quick login is only allowed in local environment
+        if (! app()->environment('local')) {
+            abort(403, 'Quick login hanya diizinkan di environment local.');
         }
 
         $request->validate([

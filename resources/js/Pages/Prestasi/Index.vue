@@ -1,5 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import ConfirmModal from '@/Components/ConfirmModal.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 
@@ -35,12 +36,26 @@ function destroyRow(id) {
     router.delete(route('prestasis.destroy', id));
 }
 
-function submitRow(id) {
-    if (!confirm('Ajukan prestasi ini untuk verifikasi?')) return;
+const showSubmitModal = ref(false);
+const submittingPrestasi = ref(null);
+const isSubmitting = ref(false);
+
+function openSubmitModal(prestasi) {
+    submittingPrestasi.value = prestasi;
+    showSubmitModal.value = true;
+}
+
+function confirmSubmit() {
+    if (!submittingPrestasi.value) return;
     router.post(route('verifikasi.submit'), {
         entity_type: 'prestasi',
-        ids: [id],
-    }, { preserveScroll: true });
+        ids: [submittingPrestasi.value.id],
+    }, {
+        preserveScroll: true,
+        onStart: () => { isSubmitting.value = true; },
+        onSuccess: () => { showSubmitModal.value = false; },
+        onFinish: () => { isSubmitting.value = false; },
+    });
 }
 
 function getVerificationBadge(status) {
@@ -154,7 +169,7 @@ function getMedaliLabel(medaliVal) {
                                             <Link :href="route('prestasis.show', p.id)" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Lihat</Link>
                                             <Link v-if="can?.manage" :href="route('prestasis.edit', p.id)" class="text-sm font-medium dark:text-gray-100 text-blue-600 hover:text-blue-800">Edit</Link>
                                             <button v-if="can?.manage" @click="destroyRow(p.id)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
-                                            <button v-if="can?.manage && (p.verification_status === 'draft' || p.verification_status === 'perlu_perbaikan')" @click="submitRow(p.id)" class="rounded bg-yellow-500 px-2 py-0.5 text-xs font-semibold text-white hover:bg-yellow-600">Submit</button>
+                                            <button v-if="can?.manage && (p.verification_status === 'draft' || p.verification_status === 'perlu_perbaikan')" @click="openSubmitModal(p)" class="rounded bg-amber-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-amber-600">Ajukan Verifikasi</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -171,5 +186,17 @@ function getMedaliLabel(medaliVal) {
                 </div>
             </div>
         </div>
+
+        <ConfirmModal
+            :show="showSubmitModal"
+            title="Ajukan Verifikasi Prestasi"
+            :message="`Apakah Anda yakin ingin mengajukan prestasi '${submittingPrestasi?.kejuaraan?.nama ?? submittingPrestasi?.atlet?.nama ?? ''}' untuk verifikasi? Data akan masuk ke antrian verifikator.`"
+            confirm-text="Ya, Ajukan"
+            cancel-text="Batal"
+            type="warning"
+            :processing="isSubmitting"
+            @close="showSubmitModal = false"
+            @confirm="confirmSubmit"
+        />
     </AuthenticatedLayout>
 </template>

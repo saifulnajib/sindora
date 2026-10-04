@@ -26,6 +26,7 @@ class AtletController extends Controller
         $klubId = $request->string('klub_id')->toString();
         $caborId = $request->string('cabor_id')->toString();
         $statusPembinaan = $request->string('status_pembinaan')->toString();
+        $verificationStatus = $request->string('verification_status')->toString();
 
         $query = Atlet::query()
             ->with(['klub', 'cabor', 'kelurahan'])
@@ -37,6 +38,7 @@ class AtletController extends Controller
             ->when($klubId, fn ($q) => $q->where('klub_id', $klubId))
             ->when($caborId, fn ($q) => $q->where('cabor_id', $caborId))
             ->when($statusPembinaan, fn ($q) => $q->where('status_pembinaan', $statusPembinaan))
+            ->when($verificationStatus, fn ($q) => $q->where('verification_status', $verificationStatus))
             ->orderBy('nama');
 
         $paginator = $query->paginate(10)->withQueryString();
@@ -60,6 +62,7 @@ class AtletController extends Controller
                 'klub_id' => $klubId,
                 'cabor_id' => $caborId,
                 'status_pembinaan' => $statusPembinaan,
+                'verification_status' => $verificationStatus,
             ],
             'klubs' => Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama')->get(),
             'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),

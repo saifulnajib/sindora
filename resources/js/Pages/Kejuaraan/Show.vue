@@ -1,5 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import ConfirmModal from '@/Components/ConfirmModal.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 
@@ -47,9 +48,20 @@ function onKeydown(e) { if (e.key === 'Escape' && showLightbox.value) closeLight
 onMounted(() => window.addEventListener('keydown', onKeydown));
 onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
 
+const showSubmitModal = ref(false);
+const isSubmitting = ref(false);
+
 function submitVerification() {
-    if (!confirm('Ajukan kejuaraan ini untuk verifikasi?')) return;
-    router.post(route('verifikasi.submit'), { entity_type: 'kejuaraan', ids: [k.value.id] }, { preserveScroll: true });
+    showSubmitModal.value = true;
+}
+
+function confirmVerification() {
+    router.post(route('verifikasi.submit'), { entity_type: 'kejuaraan', ids: [k.value.id] }, {
+        preserveScroll: true,
+        onStart: () => { isSubmitting.value = true; },
+        onSuccess: () => { showSubmitModal.value = false; },
+        onFinish: () => { isSubmitting.value = false; },
+    });
 }
 </script>
 
@@ -216,6 +228,18 @@ function submitVerification() {
                 </div>
             </Transition>
         </Teleport>
+
+        <ConfirmModal
+            :show="showSubmitModal"
+            title="Ajukan Verifikasi Kejuaraan"
+            :message="`Apakah Anda yakin ingin mengajukan kejuaraan '${k.nama}' untuk verifikasi? Data akan masuk ke antrian verifikator.`"
+            confirm-text="Ya, Ajukan"
+            cancel-text="Batal"
+            type="warning"
+            :processing="isSubmitting"
+            @close="showSubmitModal = false"
+            @confirm="confirmVerification"
+        />
     </AuthenticatedLayout>
 </template>
 
