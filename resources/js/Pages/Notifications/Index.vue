@@ -46,7 +46,7 @@ function goNotif(n) {
                             </div>
                             <div class="flex shrink-0 flex-col gap-1">
                                 <button v-if="!n.read_at" @click="markRead(n.id)" class="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-gray-200 px-2 py-1 text-xs hover:bg-gray-50 dark:hover:bg-gray-600">Tandai dibaca</button>
-                                <button v-if="n.data?.url" @click="goNotif(n)" class="rounded bg-[#1e3a8a] dark:bg-blue-700 px-2 py-1 text-xs font-semibold text-white hover:bg-blue-800 dark:hover:bg-blue-600">Lihat</button>
+                                <button v-if="n.data?.url" @click="goNotif(n)" class="rounded bg-red-800 dark:bg-red-700 px-2 py-1 text-xs font-semibold text-white hover:bg-red-900 dark:hover:bg-red-600">Lihat</button>
                             </div>
                         </li>
                     </ul>

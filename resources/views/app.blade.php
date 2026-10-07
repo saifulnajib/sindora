@@ -11,7 +11,7 @@
         <meta name="description" content="Portal resmi data atlet binaan, pelatih bersertifikasi, dan statistik perolehan medali kejuaraan Dinas Pemuda dan Olahraga Pemerintah Kota Tanjungpinang.">
         <meta name="keywords" content="sindora, dispora tanjungpinang, olahraga tanjungpinang, atlet tanjungpinang, prestasi olahraga tanjungpinang, data atlet">
         <meta name="author" content="Dinas Pemuda dan Olahraga Pemerintah Kota Tanjungpinang">
-        <meta name="theme-color" content="#1e40af">
+        <meta name="theme-color" content="#7f1d1d">
 
         <!-- Open Graph / Facebook / WhatsApp / Telegram -->
         <meta property="og:type" content="website">

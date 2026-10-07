@@ -76,7 +76,7 @@ const pendingTotal = computed(() => pending.value.total ?? 0);
                     <Link :href="route('verifikasi.queue')" class="inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-700">
                         Verifikasi →
                     </Link>
-                    <span class="hidden sm:inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/30 dark:text-blue-200 dark:ring-blue-800">
+                    <span class="hidden sm:inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-red-200 dark:bg-red-950/40 dark:text-red-200 dark:ring-red-900">
                         <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
                         Sprint 6 — Dashboard & Analitik
                     </span>
@@ -88,29 +88,29 @@ const pendingTotal = computed(() => pending.value.total ?? 0);
             <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
                 <!-- Welcome -->
                 <div class="sindora-card">
-                    <div class="bg-gradient-to-r from-[#1e3a8a] to-blue-600 px-6 py-5 text-white">
+                    <div class="bg-gradient-to-r from-[#7f1d1d] via-[#881337] to-[#991b1b] px-6 py-5 text-white">
                         <div class="flex flex-wrap items-start justify-between gap-4">
                             <div>
-                                <p class="text-sm font-medium text-blue-100">Selamat datang,</p>
+                                <p class="text-sm font-medium text-red-100">Selamat datang,</p>
                                 <h3 class="mt-1 text-2xl font-bold tracking-tight">{{ user?.name ?? 'Tamu' }}</h3>
-                                <p class="mt-1 text-sm text-blue-100">{{ user?.email }}</p>
+                                <p class="mt-1 text-sm text-red-100">{{ user?.email }}</p>
                                 <div class="mt-3 flex flex-wrap gap-2">
                                     <span
                                         v-for="r in roles"
                                         :key="r"
-                                        class="inline-flex items-center rounded-full bg-white px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-[#1e3a8a] shadow-sm"
+                                        class="inline-flex items-center rounded-full bg-white px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-[#7f1d1d] shadow-sm"
                                     >
                                         {{ r.replaceAll('_', ' ') }}
                                     </span>
-                                    <span v-if="roles.length===0" class="text-xs text-blue-200">no role</span>
+                                    <span v-if="roles.length===0" class="text-xs text-red-200">no role</span>
                                 </div>
                             </div>
                             <div class="rounded-xl bg-white/10 px-4 py-3 text-right backdrop-blur ring-1 ring-white/20">
-                                <p class="text-xs uppercase tracking-widest text-blue-100">Kota</p>
+                                <p class="text-xs uppercase tracking-widest text-red-100">Kota</p>
                                 <p class="text-sm font-semibold">Tanjungpinang</p>
-                                <p class="text-xs text-blue-200">Kepulauan Riau</p>
-                                <p class="mt-2 text-[11px] text-blue-200">4 Kecamatan · 18 Kelurahan</p>
-                                <p v-if="w.pembinaan !== undefined" class="mt-1 text-[11px] text-blue-100">{{ w.pembinaan }} pembinaan · {{ w.cabor ?? '-' }} cabor</p>
+                                <p class="text-xs text-red-200">Kepulauan Riau</p>
+                                <p class="mt-2 text-[11px] text-red-200">4 Kecamatan · 18 Kelurahan</p>
+                                <p v-if="w.pembinaan !== undefined" class="mt-1 text-[11px] text-red-100">{{ w.pembinaan }} pembinaan · {{ w.cabor ?? '-' }} cabor</p>
                             </div>
                         </div>
                     </div>
@@ -261,7 +261,7 @@ const pendingTotal = computed(() => pending.value.total ?? 0);
                                             <span class="text-gray-500 dark:text-gray-400">{{ d.count }}</span>
                                         </div>
                                         <div class="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700">
-                                            <div class="h-2 rounded-full bg-[#1e3a8a] transition-all" :style="{ width: (d.count / maxKec * 100) + '%' }"></div>
+                                            <div class="h-2 rounded-full bg-[#991b1b] transition-all" :style="{ width: (d.count / maxKec * 100) + '%' }"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -390,7 +390,7 @@ const pendingTotal = computed(() => pending.value.total ?? 0);
                                         <p class="text-xs text-gray-500 dark:text-gray-400">{{ c.cabor_kode }}</p>
                                     </td>
                                     <td class="py-2.5 text-center">
-                                        <span class="inline-flex rounded-full bg-[#1e3a8a] px-2.5 py-1 text-xs font-bold text-white">{{ c.score }}</span>
+                                        <span class="inline-flex rounded-full bg-[#7f1d1d] px-2.5 py-1 text-xs font-bold text-white">{{ c.score }}</span>
                                     </td>
                                     <td class="py-2.5 text-center text-gray-700 dark:text-gray-300">{{ c.breakdown.prestasi_nasional }}</td>
                                     <td class="py-2.5 text-center text-gray-700 dark:text-gray-300">{{ c.breakdown.prestasi_provinsi }}</td>
@@ -408,10 +408,10 @@ const pendingTotal = computed(() => pending.value.total ?? 0);
                     <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Quick Links</h4>
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Akses cepat sesuai role kamu.</p>
                     <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                        <Link :href="route('cabors.index')" class="group rounded-xl border border-gray-200 bg-white p-4 transition hover:border-blue-200 hover:bg-blue-50/60 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
-                            <p class="text-sm font-semibold text-gray-900 group-hover:text-[#1e3a8a] dark:text-white">Master Data</p>
+                        <Link :href="route('cabors.index')" class="group rounded-xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/60 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700">
+                            <p class="text-sm font-semibold text-gray-900 group-hover:text-[#7f1d1d] dark:text-white">Master Data</p>
                             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Cabor · Klub · Atlet · SDM</p>
-                            <p class="mt-2 text-xs font-medium text-blue-600">Buka →</p>
+                            <p class="mt-2 text-xs font-medium text-red-700">Buka →</p>
                         </Link>
                         <Link v-if="can.view_verifikasi || roles.includes('super_admin') || roles.includes('verifikator')" :href="route('verifikasi.queue')" class="group rounded-xl border border-amber-200 bg-amber-50/60 p-4 transition hover:shadow-sm dark:border-amber-800 dark:bg-amber-900/20">
                             <p class="text-sm font-semibold text-gray-900 dark:text-white">Verifikasi</p>
@@ -422,15 +422,15 @@ const pendingTotal = computed(() => pending.value.total ?? 0);
                             <p class="text-sm font-semibold text-gray-500 dark:text-gray-400">Verifikasi</p>
                             <p class="mt-1 text-xs text-gray-400">Butuh role verifikator / super_admin</p>
                         </div>
-                        <Link :href="route('kejuaraans.index')" class="group rounded-xl border border-gray-200 bg-white p-4 transition hover:border-blue-200 hover:bg-blue-50/60 dark:border-gray-700 dark:bg-gray-800">
+                        <Link :href="route('kejuaraans.index')" class="group rounded-xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/60 dark:border-gray-700 dark:bg-gray-800">
                             <p class="text-sm font-semibold text-gray-900 dark:text-white">Kejuaraan & Prestasi</p>
                             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Jadwal & medali</p>
-                            <p class="mt-2 text-xs font-medium text-blue-600">Lihat →</p>
+                            <p class="mt-2 text-xs font-medium text-red-700">Lihat →</p>
                         </Link>
-                        <Link :href="route('sarpras.index')" class="group rounded-xl border border-gray-200 bg-white p-4 transition hover:border-blue-200 hover:bg-blue-50/60 dark:border-gray-700 dark:bg-gray-800">
+                        <Link :href="route('sarpras.index')" class="group rounded-xl border border-gray-200 bg-white p-4 transition hover:border-red-200 hover:bg-red-50/60 dark:border-gray-700 dark:bg-gray-800">
                             <p class="text-sm font-semibold text-gray-900 dark:text-white">GIS Peta</p>
                             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Sarpras & sebaran atlet</p>
-                            <p class="mt-2 text-xs font-medium text-blue-600">Buka peta →</p>
+                            <p class="mt-2 text-xs font-medium text-red-700">Buka peta →</p>
                         </Link>
                     </div>
                 </div>

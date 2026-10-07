@@ -139,16 +139,16 @@ const fillForm = (acc) => {
             <svg v-else class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
         </button>
         <!-- Left Branding — hidden on mobile -->
-        <div class="hidden lg:flex lg:w-[52%] xl:w-[56%] relative overflow-hidden bg-gradient-to-br from-[#0f2a6b] via-[#1e3a8a] to-[#1e40af] text-white">
+        <div class="hidden lg:flex lg:w-[52%] xl:w-[56%] relative overflow-hidden bg-gradient-to-br from-[#450a0a] via-[#7f1d1d] to-[#991b1b] text-white">
             <!-- decorative blobs -->
             <div class="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-            <div class="absolute top-1/2 -right-32 h-[480px] w-[480px] rounded-full bg-cyan-400/10 blur-3xl" />
-            <div class="absolute -bottom-32 left-1/4 h-80 w-80 rounded-full bg-violet-500/10 blur-3xl" />
+            <div class="absolute top-1/2 -right-32 h-[480px] w-[480px] rounded-full bg-rose-400/10 blur-3xl" />
+            <div class="absolute -bottom-32 left-1/4 h-80 w-80 rounded-full bg-red-500/10 blur-3xl" />
 
             <div class="relative z-10 flex w-full flex-col justify-between p-10 xl:p-12">
                 <div>
                     <div class="flex items-center gap-3">
-                        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#1e3a8a] font-black text-xl shadow-lg">S</div>
+                        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#7f1d1d] font-black text-xl shadow-lg">S</div>
                         <div>
                             <div class="text-[11px] tracking-[0.18em] text-white/70 font-semibold">KOTA TANJUNGPINANG</div>
                             <div class="text-xl font-extrabold tracking-tight -mt-1">SINDORA</div>
@@ -158,7 +158,7 @@ const fillForm = (acc) => {
                     <div class="mt-10 max-w-[520px]">
                         <h1 class="text-4xl xl:text-[42px] font-extrabold leading-[1.05] tracking-tight">
                             Sistem Informasi<br />
-                            <span class="text-cyan-200">Data Olahraga Daerah</span> </h1> <p class="mt-4 text-[15px] leading-6 text-white/80 max-w-[480px]">
+                            <span class="text-rose-200">Data Olahraga Daerah</span> </h1> <p class="mt-4 text-[15px] leading-6 text-white/80 max-w-[480px]">
                             DATA → INFORMASI → ANALISIS → KEBIJAKAN → PRESTASI.<br />
                             Kelola Atlet, Klub, SDM, Sarpras & Prestasi terintegrasi untuk Dispora Tanjungpinang.
                         </p>
@@ -206,15 +206,15 @@ const fillForm = (acc) => {
             <div class="w-full max-w-[520px]">
                 <!-- Mobile header -->
                 <div class="lg:hidden mb-6 flex items-center gap-3">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1e3a8a] dark:bg-blue-700 text-white font-black">S</div>
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#7f1d1d] dark:bg-red-700 text-white font-black">S</div>
                     <div>
                         <div class="text-xs tracking-[0.14em] text-slate-500 font-semibold">KOTA TANJUNGPINANG</div>
                         <div class="font-extrabold tracking-tight text-slate-900 -mt-1">SINDORA</div>
                     </div>
-                    <span class="ml-auto rounded-full bg-[#1e3a8a] dark:bg-blue-700 px-2.5 py-1 text-[10px] font-bold tracking-widest text-white">Sprint 1</span>
+                    <span class="ml-auto rounded-full bg-[#7f1d1d] dark:bg-red-700 px-2.5 py-1 text-[10px] font-bold tracking-widest text-white">Sprint 1</span>
                 </div>
 
-                <div class="rounded-[20px] bg-white dark:bg-gray-800 shadow-[0_8px_40px_rgba(15,42,107,0.08)] ring-1 ring-slate-200 dark:ring-gray-700 overflow-hidden">
+                <div class="rounded-[20px] bg-white dark:bg-gray-800 shadow-[0_8px_40px_rgba(127,29,29,0.08)] ring-1 ring-slate-200 dark:ring-gray-700 overflow-hidden">
                     <div class="px-6 sm:px-8 pt-7 pb-2">
                         <h2 class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Masuk ke SINDORA</h2>
                         <p class="mt-1 text-sm text-slate-500 dark:text-gray-400">
@@ -282,7 +282,7 @@ const fillForm = (acc) => {
                     <form @submit.prevent="submit" class="px-6 sm:px-8 pb-6 space-y-4" :class="{ 'pt-4': !isLocal }">
                         <div>
                             <InputLabel for="email" value="Email" class="text-slate-700 dark:text-gray-300" />
-                            <TextInput id="email" type="email" class="mt-1.5 block w-full rounded-xl border-slate-200 focus:border-[#1e3a8a] focus:ring-[#1e3a8a]" v-model="form.email" required autofocus autocomplete="username" placeholder="nama@sindora.test" />
+                            <TextInput id="email" type="email" class="mt-1.5 block w-full rounded-xl border-slate-200 focus:border-[#7f1d1d] focus:ring-[#7f1d1d]" v-model="form.email" required autofocus autocomplete="username" placeholder="nama@sindora.test" />
                             <InputError class="mt-2" :message="form.errors.email" />
                         </div>
                         <div>
@@ -290,7 +290,7 @@ const fillForm = (acc) => {
                                 <InputLabel for="password" value="Password" class="text-slate-700 dark:text-gray-300" />
                                 <Link v-if="canResetPassword" :href="route('password.request')" class="text-xs font-semibold text-slate-500 hover:text-slate-700 underline">Lupa password?</Link>
                             </div>
-                            <TextInput id="password" type="password" class="mt-1.5 block w-full rounded-xl border-slate-200 focus:border-[#1e3a8a] focus:ring-[#1e3a8a]" v-model="form.password" required autocomplete="current-password" placeholder="••••••••" />
+                            <TextInput id="password" type="password" class="mt-1.5 block w-full rounded-xl border-slate-200 focus:border-[#7f1d1d] focus:ring-[#7f1d1d]" v-model="form.password" required autocomplete="current-password" placeholder="••••••••" />
                             <InputError class="mt-2" :message="form.errors.password" />
                         </div>
                         <label class="flex items-center gap-2">
@@ -299,7 +299,7 @@ const fillForm = (acc) => {
                             <span v-if="isLocal" class="ml-auto text-xs text-slate-400">Password demo: <span class="font-mono font-bold text-slate-700 dark:text-slate-200">password</span></span>
                         </label>
 
-                        <PrimaryButton class="w-full justify-center rounded-xl bg-[#1e3a8a] dark:bg-blue-700 py-3 text-[13px] font-extrabold tracking-widest hover:bg-[#162f6b] focus:bg-[#162f6b]" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                        <PrimaryButton class="w-full justify-center rounded-xl bg-[#7f1d1d] dark:bg-red-700 py-3 text-[13px] font-extrabold tracking-widest hover:bg-[#6b1417] focus:bg-[#6b1417]" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
                             <span v-if="form.processing" class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                             MASUK → DASHBOARD
                         </PrimaryButton>

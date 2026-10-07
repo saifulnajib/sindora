@@ -82,12 +82,12 @@ const navMasterData = computed(() => [
         <!-- Sidebar -->
         <aside
             :class="[
-                'fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-[#1e3a8a] text-white transition-transform duration-200 ease-in-out lg:translate-x-0',
+                'fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-[#7f1d1d] text-white transition-transform duration-200 ease-in-out lg:translate-x-0',
                 showingSidebar ? 'translate-x-0' : '-translate-x-full',
             ]"
         >
             <!-- Brand -->
-            <div class="flex h-16 shrink-0 items-center gap-3 border-b border-blue-700/60 px-4">
+            <div class="flex h-16 shrink-0 items-center gap-3 border-b border-red-800/60 px-4">
                 <Link :href="route('dashboard')" class="flex items-center gap-3">
                     <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/20">
                         <!-- placeholder logo icon -->
@@ -98,11 +98,11 @@ const navMasterData = computed(() => [
                     </div>
                     <div class="leading-tight">
                         <div class="text-sm font-extrabold tracking-wide">SINDORA</div>
-                        <div class="text-[11px] font-medium text-blue-200">Dispora Tanjungpinang</div>
+                        <div class="text-[11px] font-medium text-red-200">Dispora Tanjungpinang</div>
                     </div>
                 </Link>
                 <button
-                    class="ml-auto rounded-md p-1.5 text-blue-200 hover:bg-white/10 hover:text-white lg:hidden"
+                    class="ml-auto rounded-md p-1.5 text-red-200 hover:bg-white/10 hover:text-white lg:hidden"
                     @click="showingSidebar = false"
                     aria-label="Close sidebar"
                 >
@@ -113,21 +113,21 @@ const navMasterData = computed(() => [
             </div>
 
             <!-- User mini card -->
-            <div v-if="user" class="border-b border-blue-700/60 px-4 py-3">
+            <div v-if="user" class="border-b border-red-800/60 px-4 py-3">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-[#1e3a8a]">
+                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-sm font-bold text-[#7f1d1d]">
                         {{ (user.name || 'U').charAt(0).toUpperCase() }}
                     </div>
                     <div class="min-w-0 flex-1">
                         <div class="truncate text-sm font-semibold">{{ user.name }}</div>
-                        <div class="truncate text-xs text-blue-200">{{ user.email }}</div>
+                        <div class="truncate text-xs text-red-200">{{ user.email }}</div>
                     </div>
                 </div>
                 <div class="mt-2 flex flex-wrap gap-1.5">
                     <span
                         v-for="r in roles"
                         :key="r"
-                        class="inline-flex rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-100 ring-1 ring-white/15"
+                        class="inline-flex rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-red-100 ring-1 ring-white/15"
                     >{{ r.replaceAll('_',' ') }}</span>
                 </div>
             </div>
@@ -153,7 +153,7 @@ const navMasterData = computed(() => [
 
                 <!-- Master Data group -->
                 <div class="mb-4">
-                    <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-widest text-blue-300">Master Data</p>
+                    <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-widest text-red-300">Master Data</p>
                     <ul class="space-y-1">
                         <li v-for="item in navMasterData" :key="item.label" v-show="item.can">
                             <Link
@@ -174,7 +174,7 @@ const navMasterData = computed(() => [
                                 <svg v-else-if="item.icon==='user-group'" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 11a3 3 0 100-6 3 3 0 000 6z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 21v-2a4 4 0 014-4h0M18 21v-2a4 4 0 00-4-4h0" /><path stroke-linecap="round" stroke-linejoin="round" d="M6 8a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM18 8a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" /></svg>
                                 <svg v-else class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M3 12h18M3 17h18" /></svg>
                                 <span class="flex-1">{{ item.label }}</span>
-                                <span v-if="item.soon" class="rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-200">soon</span>
+                                <span v-if="item.soon" class="rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-red-200">soon</span>
                             </Link>
                         </li>
                     </ul>
@@ -182,7 +182,7 @@ const navMasterData = computed(() => [
 
                 <!-- Operations -->
                 <div class="mb-4">
-                    <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-widest text-blue-300">Operasional</p>
+                    <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-widest text-red-300">Operasional</p>
                     <ul class="space-y-1">
                         <li v-show="can.view_verifikasi ?? hasAnyRole(['super_admin','verifikator'])">
                             <Link :href="route('verifikasi.queue')" :class="['sindora-sidebar-link', isRouteActive('verifikasi.*') ? 'sindora-sidebar-link-active' : 'sindora-sidebar-link-inactive']" @click="showingSidebar=false">
@@ -224,7 +224,7 @@ const navMasterData = computed(() => [
                 </div>
 
                 <div class="mb-4">
-                    <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-widest text-blue-300">Analitik & Peta</p>
+                    <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-widest text-red-300">Analitik & Peta</p>
                     <ul class="space-y-1">
                         <li v-show="can.view_dashboard ?? hasAnyRole(['super_admin','verifikator','viewer','operator_organisasi'])">
                             <Link href="#" class="sindora-sidebar-link sindora-sidebar-link-inactive">
@@ -249,7 +249,7 @@ const navMasterData = computed(() => [
 
                 <!-- Role-based admin section -->
                 <div v-if="hasRole('super_admin') || can.manage_user || can.view_user" class="mb-2">
-                    <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-widest text-blue-300">Administrasi</p>
+                    <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-widest text-red-300">Administrasi</p>
                     <ul class="space-y-1">
                         <li v-show="can.manage_user || can.view_user || hasRole('super_admin')">
                             <Link :href="route('users.index')" :class="['sindora-sidebar-link', isRouteActive('users.*') ? 'sindora-sidebar-link-active' : 'sindora-sidebar-link-inactive']" @click="showingSidebar=false">
@@ -268,9 +268,9 @@ const navMasterData = computed(() => [
             </nav>
 
             <!-- Footer -->
-            <div class="border-t border-blue-700/60 px-4 py-3">
-                <p class="text-[11px] leading-tight text-blue-200">SINDORA v1 — Sprint 1</p>
-                <p class="text-[11px] text-blue-300">16 tables · 5 roles · 18 wilayah</p>
+            <div class="border-t border-red-800/60 px-4 py-3">
+                <p class="text-[11px] leading-tight text-red-200">SINDORA v1 — Sprint 1</p>
+                <p class="text-[11px] text-red-300">16 tables · 5 roles · 18 wilayah</p>
             </div>
         </aside>
 
@@ -281,7 +281,7 @@ const navMasterData = computed(() => [
                 <div class="flex h-16 items-center gap-4 px-4 sm:px-6 lg:px-8">
                     <!-- Hamburger (mobile) -->
                     <button
-                        class="inline-flex items-center justify-center rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 lg:hidden dark:text-gray-400 dark:hover:bg-gray-700"
+                        class="inline-flex items-center justify-center rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 lg:hidden dark:text-gray-400 dark:hover:bg-gray-700"
                         @click="showingSidebar = !showingSidebar"
                         aria-label="Toggle sidebar"
                     >
@@ -295,7 +295,7 @@ const navMasterData = computed(() => [
                     <div class="hidden items-center gap-2 lg:flex">
                         <div class="hidden h-6 w-px bg-gray-200 dark:bg-gray-700 lg:block" />
                         <div class="text-sm font-semibold text-gray-700 dark:text-gray-200">Sistem Informasi Keolahragaan</div>
-                        <span class="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/40 dark:text-blue-200 dark:ring-blue-800">Dispora</span>
+                        <span class="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-700 ring-1 ring-red-200 dark:bg-red-950/40 dark:text-red-200 dark:ring-red-900">Dispora</span>
                     </div>
 
                     <div class="flex-1" />
@@ -311,7 +311,7 @@ const navMasterData = computed(() => [
                         type="button"
                         @click="toggleTheme"
                         :title="isDark ? 'Ganti ke Light Mode' : 'Ganti ke Dark Mode'"
-                        class="relative inline-flex items-center justify-center rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                        class="relative inline-flex items-center justify-center rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
                         aria-label="Toggle dark mode"
                     >
                         <svg v-if="!isDark" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -327,7 +327,7 @@ const navMasterData = computed(() => [
                     <!-- Notification bell -->
                     <Dropdown v-if="user" align="right" width="96">
                         <template #trigger>
-                            <button type="button" class="relative inline-flex items-center justify-center rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-400 dark:hover:bg-gray-700">
+                            <button type="button" class="relative inline-flex items-center justify-center rounded-full p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-gray-400 dark:hover:bg-gray-700">
                                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                                 </svg>
@@ -338,25 +338,25 @@ const navMasterData = computed(() => [
                             <div class="max-h-[380px] overflow-y-auto">
                                 <div class="flex items-center justify-between px-4 py-3">
                                     <div class="text-sm font-semibold text-gray-800 dark:text-gray-200">Notifikasi</div>
-                                    <button v-if="unreadCount > 0" @click="markAllRead" class="text-xs font-medium text-blue-600 hover:text-blue-800">Tandai semua dibaca</button>
+                                    <button v-if="unreadCount > 0" @click="markAllRead" class="text-xs font-medium text-red-700 hover:text-red-900">Tandai semua dibaca</button>
                                 </div>
                                 <div v-if="notificationsPreview.length === 0" class="px-4 py-8 text-center text-sm text-gray-500">Tidak ada notifikasi.</div>
                                 <div v-for="n in notificationsPreview" :key="n.id" class="border-t border-gray-100 px-4 py-3 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/50">
                                     <div class="flex gap-2">
-                                        <span v-if="!n.read_at" class="mt-1 h-2 w-2 shrink-0 rounded-full bg-blue-600"></span>
+                                        <span v-if="!n.read_at" class="mt-1 h-2 w-2 shrink-0 rounded-full bg-red-600"></span>
                                         <span v-else class="mt-1 h-2 w-2 shrink-0 rounded-full bg-gray-300"></span>
                                         <div class="min-w-0 flex-1">
                                             <div class="truncate text-sm text-gray-800 dark:text-gray-200">{{ n.data?.message ?? n.data?.action ?? 'Notifikasi' }}</div>
                                             <div class="text-xs text-gray-500">{{ n.created_at_human ?? n.created_at }}</div>
                                             <div class="mt-1 flex gap-2">
-                                                <button v-if="!n.read_at" @click="markRead(n.id)" class="text-xs text-blue-600 hover:text-blue-800">Tandai dibaca</button>
+                                                <button v-if="!n.read_at" @click="markRead(n.id)" class="text-xs text-red-700 hover:text-red-900">Tandai dibaca</button>
                                                 <Link v-if="n.data?.url" :href="n.data.url" class="text-xs text-gray-600 hover:text-gray-800 dark:text-gray-400">Lihat</Link>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="border-t border-gray-100 px-4 py-2 text-center dark:border-gray-700">
-                                    <Link :href="route('notifications.index')" class="text-sm font-medium text-blue-600 hover:text-blue-800">Lihat semua →</Link>
+                                    <Link :href="route('notifications.index')" class="text-sm font-medium text-red-700 hover:text-red-900">Lihat semua →</Link>
                                 </div>
                             </div>
                         </template>
@@ -367,9 +367,9 @@ const navMasterData = computed(() => [
                         <template #trigger>
                             <button
                                 type="button"
-                                class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-2 py-1.5 text-sm font-medium leading-4 text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+                                class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-2 py-1.5 text-sm font-medium leading-4 text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                             >
-                                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-[#1e3a8a] text-xs font-bold text-white">{{ (user.name||'U').charAt(0).toUpperCase() }}</span>
+                                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-[#7f1d1d] text-xs font-bold text-white">{{ (user.name||'U').charAt(0).toUpperCase() }}</span>
                                 <span class="hidden max-w-[12ch] truncate md:inline">{{ user.name }}</span>
                                 <svg class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                             </button>
@@ -387,7 +387,7 @@ const navMasterData = computed(() => [
                             <DropdownLink :href="route('logout')" method="post" as="button">Log Out</DropdownLink>
                         </template>
                     </Dropdown>
-                    <Link v-else :href="route('login')" class="text-sm font-medium text-blue-700 hover:text-blue-800">Log in</Link>
+                    <Link v-else :href="route('login')" class="text-sm font-medium text-red-700 hover:text-red-900">Log in</Link>
                 </div>
             </header>
 

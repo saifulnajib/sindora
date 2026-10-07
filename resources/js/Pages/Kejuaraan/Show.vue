@@ -78,7 +78,7 @@ function confirmVerification() {
                 </div>
                 <div class="flex items-center gap-2">
                     <button v-if="k.verification_status==='draft' || k.verification_status==='perlu_perbaikan'" @click="submitVerification" class="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600">Ajukan Verifikasi</button>
-                    <Link v-if="can?.manage" :href="route('kejuaraans.edit', k.id)" class="rounded-lg bg-[#1e3a8a] px-4 py-1.5 text-sm font-semibold text-white hover:bg-blue-800 dark:bg-blue-700 dark:hover:bg-blue-600">Edit</Link>
+                    <Link v-if="can?.manage" :href="route('kejuaraans.edit', k.id)" class="rounded-lg bg-red-800 px-4 py-1.5 text-sm font-semibold text-white hover:bg-red-900 dark:bg-red-700 dark:hover:bg-red-600">Edit</Link>
                     <button v-if="can?.manage" @click="destroyRow" class="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-red-900/20">Hapus</button>
                 </div>
             </div>
@@ -200,10 +200,10 @@ function confirmVerification() {
                                 </div>
                             </dl>
                         </div>
-                        <div class="rounded-xl bg-gradient-to-br from-[#1e3a8a] to-blue-700 p-5 text-white shadow">
-                            <h3 class="text-sm font-bold tracking-widest text-blue-200">TINDAKAN</h3>
+                        <div class="rounded-xl bg-gradient-to-br from-[#7f1d1d] to-[#991b1b] p-5 text-white shadow">
+                            <h3 class="text-sm font-bold tracking-widest text-red-200">TINDAKAN</h3>
                             <div class="mt-3 grid gap-2">
-                                <Link :href="route('prestasis.index', { kejuaraan_id: k.id })" class="rounded-lg bg-white px-4 py-2 text-center text-sm font-semibold text-[#1e3a8a] hover:bg-blue-50">Lihat Prestasi ({{ k.prestasis_count ?? 0 }})</Link>
+                                <Link :href="route('prestasis.index', { kejuaraan_id: k.id })" class="rounded-lg bg-white px-4 py-2 text-center text-sm font-semibold text-[#7f1d1d] hover:bg-red-50">Lihat Prestasi ({{ k.prestasis_count ?? 0 }})</Link>
                                 <Link :href="route('kalender.index', { month: (k.tanggal_mulai||'').slice(0,7) })" class="rounded-lg bg-white/10 px-4 py-2 text-center text-sm font-medium ring-1 ring-white/20 hover:bg-white/15">Lihat di Kalender</Link>
                                 <Link v-if="can?.manage" :href="route('kejuaraans.edit', k.id)" class="rounded-lg bg-white/10 px-4 py-2 text-center text-sm font-medium ring-1 ring-white/20 hover:bg-white/15">Edit Kejuaraan</Link>
                             </div>

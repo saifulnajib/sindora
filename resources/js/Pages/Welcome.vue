@@ -134,9 +134,9 @@ function getMedaliBadge(medali) {
         };
     }
     return {
-        bg: 'bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-700/60',
+        bg: 'bg-red-100 text-red-900 border-red-300 dark:bg-red-950/60 dark:text-red-300 dark:border-red-700/60',
         icon: '🏅',
-        glow: 'shadow-blue-500/20',
+        glow: 'shadow-red-500/20',
         label: medali ? medali.toUpperCase() : 'Prestasi',
     };
 }
@@ -158,7 +158,7 @@ function getMedaliBadge(medali) {
         <link rel="shortcut icon" type="image/png" href="/logo-tanjungpinang.png" />
     </Head>
 
-    <div class="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white dark:bg-slate-950 dark:text-slate-100">
+    <div class="min-h-screen bg-slate-50 text-slate-900 selection:bg-red-800 selection:text-white dark:bg-slate-950 dark:text-slate-100">
         <!-- TOP NAVIGATION BAR -->
         <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/90">
             <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
@@ -167,8 +167,8 @@ function getMedaliBadge(medali) {
                     <img src="/logo-tanjungpinang.png" alt="Logo Kota Tanjungpinang" class="h-11 w-auto object-contain drop-shadow-sm" />
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="text-xl font-black tracking-tight text-blue-900 dark:text-white">SINDORA</span>
-                            <span class="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-800 dark:bg-blue-950 dark:text-blue-300">DISPORA TANJUNGPINANG</span>
+                            <span class="text-xl font-black tracking-tight text-red-950 dark:text-white">SINDORA</span>
+                            <span class="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-800 dark:bg-red-950 dark:text-red-300">DISPORA TANJUNGPINANG</span>
                         </div>
                         <p class="hidden text-xs text-slate-500 sm:block dark:text-slate-400">Dinas Pemuda dan Olahraga Kota Tanjungpinang</p>
                     </div>
@@ -177,8 +177,8 @@ function getMedaliBadge(medali) {
                 <!-- Nav links & CTA -->
                 <div class="flex items-center gap-3 sm:gap-4">
                     <nav class="hidden items-center gap-6 md:flex">
-                        <a href="#statistik" class="text-sm font-medium text-slate-600 transition hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400">Statistik</a>
-                        <a href="#explorer" class="text-sm font-medium text-slate-600 transition hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400">Data Publik</a>
+                        <a href="#statistik" class="text-sm font-medium text-slate-600 transition hover:text-red-700 dark:text-slate-300 dark:hover:text-red-400">Statistik</a>
+                        <a href="#explorer" class="text-sm font-medium text-slate-600 transition hover:text-red-700 dark:text-slate-300 dark:hover:text-red-400">Data Publik</a>
                     </nav>
 
                     <div class="h-5 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
@@ -187,25 +187,25 @@ function getMedaliBadge(medali) {
         </header>
 
         <!-- HERO SECTION -->
-        <section class="relative overflow-hidden bg-gradient-to-b from-blue-900 via-blue-950 to-slate-950 py-16 text-white sm:py-24">
+        <section class="relative overflow-hidden bg-gradient-to-b from-[#7f1d1d] via-[#450a0a] to-slate-950 py-16 text-white sm:py-24">
             <!-- Decorative background glows -->
-            <div class="pointer-events-none absolute -top-40 right-1/4 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl"></div>
+            <div class="pointer-events-none absolute -top-40 right-1/4 h-96 w-96 rounded-full bg-red-600/15 blur-3xl"></div>
             <div class="pointer-events-none absolute bottom-0 left-10 h-80 w-80 rounded-full bg-amber-500/10 blur-3xl"></div>
             <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:24px_24px]"></div>
 
             <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="mx-auto max-w-3xl text-center">
-                    <div class="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-blue-800/40 px-3.5 py-1 text-xs font-semibold text-blue-200 backdrop-blur-md">
+                    <div class="inline-flex items-center gap-2 rounded-full border border-red-400/30 bg-red-900/40 px-3.5 py-1 text-xs font-semibold text-red-200 backdrop-blur-md">
                         <span class="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         Dinas Pemuda dan Olahraga Pemerintah Kota Tanjungpinang
                     </div>
 
                     <h1 class="mt-6 text-3xl font-black tracking-tight sm:text-5xl lg:text-6xl text-white">
                         Pusat Data & Prestasi <br />
-                        <span class="bg-gradient-to-r from-blue-300 via-amber-300 to-amber-400 bg-clip-text text-transparent">Keolahragaan Kota Tanjungpinang</span>
+                        <span class="bg-gradient-to-r from-red-200 via-amber-200 to-amber-300 bg-clip-text text-transparent">Keolahragaan Kota Tanjungpinang</span>
                     </h1>
 
-                    <p class="mt-5 text-base leading-relaxed text-blue-100/90 sm:text-lg">
+                    <p class="mt-5 text-base leading-relaxed text-red-100/90 sm:text-lg">
                         Sistem Informasi Database Olahraga (SINDORA) menyajikan data resmi atlit binaan, pelatih bersertifikasi, serta capaian medali kejuaraan di bawah naungan Dinas Pemuda dan Olahraga Pemerintah Kota Tanjungpinang.
                     </p>
 
@@ -235,18 +235,18 @@ function getMedaliBadge(medali) {
                 <!-- KEY METRIC CARDS (HERO HIGHLIGHTS) -->
                 <div class="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <!-- CARD 1: ATLIT -->
-                    <div class="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6 backdrop-blur-md transition hover:-translate-y-1 hover:border-blue-400/40 hover:shadow-xl hover:shadow-blue-500/10">
+                    <div class="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/10 to-white/5 p-6 backdrop-blur-md transition hover:-translate-y-1 hover:border-red-400/40 hover:shadow-xl hover:shadow-red-500/10">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-blue-200">Total Atlit Terbina</span>
-                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20 text-blue-300">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-red-200">Total Atlit Terbina</span>
+                            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/20 text-red-300">
                                 🏃
                             </div>
                         </div>
                         <div class="mt-4 flex items-baseline gap-2">
                             <span class="text-4xl font-black text-white">{{ stats.atlet_total.toLocaleString() }}</span>
-                            <span class="text-xs text-blue-200 font-medium">Orang</span>
+                            <span class="text-xs text-red-200 font-medium">Orang</span>
                         </div>
-                        <div class="mt-4 flex items-center gap-3 border-t border-white/10 pt-3 text-xs text-blue-200">
+                        <div class="mt-4 flex items-center gap-3 border-t border-white/10 pt-3 text-xs text-red-200">
                             <span class="inline-flex items-center gap-1 font-medium">
                                 <span class="h-2 w-2 rounded-full bg-cyan-400"></span> {{ stats.atlet_putra }} Putra
                             </span>
@@ -322,7 +322,7 @@ function getMedaliBadge(medali) {
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div>
-                        <div class="inline-flex items-center gap-2 rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+                        <div class="inline-flex items-center gap-2 rounded-md bg-red-50 px-2.5 py-1 text-xs font-bold text-red-800 dark:bg-red-950/60 dark:text-red-300">
                             📊 Analitik Olahraga
                         </div>
                         <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl dark:text-white">
@@ -427,14 +427,14 @@ function getMedaliBadge(medali) {
                                     <div class="flex items-center gap-2">
                                         <span class="font-semibold text-slate-700 dark:text-slate-300">{{ lvl.total }} total</span>
                                         <span v-if="lvl.emas > 0" class="rounded bg-amber-100 px-1.5 py-0.2 text-[10px] font-bold text-amber-800 dark:bg-amber-950/80 dark:text-amber-300">
-                                            🥇 {{ lvl.emas }} Emas
+                                             🥇 {{ lvl.emas }} Emas
                                         </span>
                                     </div>
                                 </div>
                                 <div class="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                                     <div
                                         :style="{ width: maxTingkatMedali > 0 ? ((lvl.total / maxTingkatMedali) * 100) + '%' : '0%' }"
-                                        class="h-full rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 transition-all duration-500"
+                                        class="h-full rounded-full bg-gradient-to-r from-red-800 via-red-700 to-rose-600 transition-all duration-500"
                                     ></div>
                                 </div>
                             </div>
@@ -450,7 +450,7 @@ function getMedaliBadge(medali) {
                 <!-- Header & Tabs -->
                 <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
-                        <div class="inline-flex items-center gap-2 rounded-md bg-blue-100 px-2.5 py-1 text-xs font-bold text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+                        <div class="inline-flex items-center gap-2 rounded-md bg-red-100 px-2.5 py-1 text-xs font-bold text-red-800 dark:bg-red-950 dark:text-red-300">
                             🔍 Direktori Publik
                         </div>
                         <h2 class="mt-2 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl dark:text-white">
@@ -467,49 +467,49 @@ function getMedaliBadge(medali) {
                             @click="activeTab = 'prestasi'"
                             :class="[
                                 activeTab === 'prestasi'
-                                    ? 'bg-white text-blue-700 shadow-sm dark:bg-slate-800 dark:text-white'
+                                    ? 'bg-white text-red-800 shadow-sm dark:bg-slate-800 dark:text-white'
                                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white',
                                 'flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition'
                             ]"
                         >
                             <span>🏆 Prestasi</span>
-                            <span class="rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] dark:bg-slate-700">{{ recentPrestasis.length }}</span>
+                            <span class="rounded-full bg-red-50 text-red-800 px-1.5 py-0.5 text-[10px] dark:bg-slate-700 dark:text-slate-200">{{ recentPrestasis.length }}</span>
                         </button>
                         <button
                             @click="activeTab = 'atlet'"
                             :class="[
                                 activeTab === 'atlet'
-                                    ? 'bg-white text-blue-700 shadow-sm dark:bg-slate-800 dark:text-white'
+                                    ? 'bg-white text-red-800 shadow-sm dark:bg-slate-800 dark:text-white'
                                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white',
                                 'flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition'
                             ]"
                         >
                             <span>🏃 Atlit</span>
-                            <span class="rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] dark:bg-slate-700">{{ atlets.length }}</span>
+                            <span class="rounded-full bg-red-50 text-red-800 px-1.5 py-0.5 text-[10px] dark:bg-slate-700 dark:text-slate-200">{{ atlets.length }}</span>
                         </button>
                         <button
                             @click="activeTab = 'pelatih'"
                             :class="[
                                 activeTab === 'pelatih'
-                                    ? 'bg-white text-blue-700 shadow-sm dark:bg-slate-800 dark:text-white'
+                                    ? 'bg-white text-red-800 shadow-sm dark:bg-slate-800 dark:text-white'
                                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white',
                                 'flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition'
                             ]"
                         >
                             <span>🧑‍🏫 Pelatih</span>
-                            <span class="rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] dark:bg-slate-700">{{ pelatihs.length }}</span>
+                            <span class="rounded-full bg-red-50 text-red-800 px-1.5 py-0.5 text-[10px] dark:bg-slate-700 dark:text-slate-200">{{ pelatihs.length }}</span>
                         </button>
                         <button
                             @click="activeTab = 'cabor'"
                             :class="[
                                 activeTab === 'cabor'
-                                    ? 'bg-white text-blue-700 shadow-sm dark:bg-slate-800 dark:text-white'
+                                    ? 'bg-white text-red-800 shadow-sm dark:bg-slate-800 dark:text-white'
                                     : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white',
                                 'flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition'
                             ]"
                         >
                             <span>📊 Per Cabor</span>
-                            <span class="rounded-full bg-blue-50 px-1.5 py-0.5 text-[10px] dark:bg-slate-700">{{ caborStats.length }}</span>
+                            <span class="rounded-full bg-red-50 text-red-800 px-1.5 py-0.5 text-[10px] dark:bg-slate-700 dark:text-slate-200">{{ caborStats.length }}</span>
                         </button>
                     </div>
                 </div>
@@ -524,14 +524,14 @@ function getMedaliBadge(medali) {
                             v-model="searchQuery"
                             type="text"
                             placeholder="Cari nama atlet, pelatih, cabor, atau kejuaraan..."
-                            class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-xs text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-xs text-slate-900 placeholder-slate-400 focus:border-red-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-700/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                         />
                     </div>
 
                     <div class="flex items-center gap-3">
                         <select
                             v-model="selectedCabor"
-                            class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                            class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-900 focus:border-red-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-700/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                         >
                             <option value="">Semua Cabang Olahraga</option>
                             <option v-for="c in caborsList" :key="c.id" :value="c.nama">
@@ -555,7 +555,7 @@ function getMedaliBadge(medali) {
                         <div
                             v-for="item in filteredPrestasi"
                             :key="item.id"
-                            class="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition hover:-translate-y-0.5 hover:border-blue-400/50 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+                            class="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition hover:-translate-y-0.5 hover:border-red-400/50 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
                         >
                             <!-- Medal Badge Top -->
                             <div class="flex items-start justify-between gap-2">
@@ -569,7 +569,7 @@ function getMedaliBadge(medali) {
 
                             <!-- Kejuaraan & Kategori -->
                             <div class="mt-3">
-                                <h4 class="text-base font-bold text-slate-900 line-clamp-1 group-hover:text-blue-600 transition dark:text-white dark:group-hover:text-blue-400">
+                                <h4 class="text-base font-bold text-slate-900 line-clamp-1 group-hover:text-red-700 transition dark:text-white dark:group-hover:text-red-400">
                                     {{ item.kejuaraan_nama }}
                                 </h4>
                                 <p class="mt-0.5 text-xs text-slate-500 line-clamp-1 dark:text-slate-400">
@@ -579,14 +579,14 @@ function getMedaliBadge(medali) {
 
                             <!-- Atlet / Peraih -->
                             <div class="mt-4 flex items-center gap-3 border-t border-slate-100 pt-3 dark:border-slate-800">
-                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700 text-xs dark:bg-blue-950 dark:text-blue-300">
+                                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-100 font-bold text-red-800 text-xs dark:bg-red-950 dark:text-red-300">
                                     {{ item.atlet_nama.charAt(0) }}
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <p class="text-xs font-bold text-slate-800 truncate dark:text-slate-200">
                                         {{ item.atlet_nama }}
                                     </p>
-                                    <p class="text-[11px] text-blue-600 font-medium truncate dark:text-blue-400">
+                                    <p class="text-[11px] text-red-700 font-medium truncate dark:text-red-400">
                                         {{ item.cabor_nama }}
                                     </p>
                                 </div>
@@ -625,7 +625,7 @@ function getMedaliBadge(medali) {
                                 <h4 class="text-sm font-bold text-slate-900 truncate group-hover:text-emerald-600 transition dark:text-white dark:group-hover:text-emerald-400">
                                     {{ atlet.nama }}
                                 </h4>
-                                <p class="mt-0.5 text-xs font-semibold text-blue-600 dark:text-blue-400">
+                                <p class="mt-0.5 text-xs font-semibold text-red-700 dark:text-red-400">
                                     {{ atlet.cabor_nama }}
                                 </p>
                             </div>
@@ -680,7 +680,7 @@ function getMedaliBadge(medali) {
                                 <h4 class="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition dark:text-white dark:group-hover:text-indigo-400">
                                     {{ pelatih.nama }}
                                 </h4>
-                                <p class="mt-0.5 text-xs font-semibold text-blue-600 dark:text-blue-400">
+                                <p class="mt-0.5 text-xs font-semibold text-red-700 dark:text-red-400">
                                     {{ pelatih.cabor_nama }}
                                 </p>
                             </div>
@@ -752,7 +752,7 @@ function getMedaliBadge(medali) {
                                                 {{ cabor.perunggu_count }}
                                             </span>
                                         </td>
-                                        <td class="py-3.5 px-4 text-center font-black text-blue-700 dark:text-blue-400">
+                                        <td class="py-3.5 px-4 text-center font-black text-red-800 dark:text-red-400">
                                             {{ cabor.prestasi_count }}
                                         </td>
                                     </tr>
@@ -770,14 +770,14 @@ function getMedaliBadge(medali) {
         </section>
 
         <!-- CTA & INFO BANNER -->
-        <section class="border-t border-slate-200 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 py-12 text-white dark:border-slate-800">
+        <section class="border-t border-slate-200 bg-gradient-to-r from-[#7f1d1d] via-[#450a0a] to-slate-900 py-12 text-white dark:border-slate-800">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-6">
                     <div>
                         <h3 class="text-xl font-bold tracking-tight text-white sm:text-2xl">
                             Pengurus Cabor & Klub Olahraga Kota Tanjungpinang?
                         </h3>
-                        <p class="mt-1 text-sm text-blue-200 max-w-2xl">
+                        <p class="mt-1 text-sm text-red-200 max-w-2xl">
                             Masuk ke dashboard resmi Dinas Pemuda dan Olahraga Pemerintah Kota Tanjungpinang untuk pemutakhiran data atlit binaan, pelatih, pengajuan verifikasi prestasi, serta jadwal sarana olahraga.
                         </p>
                     </div>
@@ -785,7 +785,7 @@ function getMedaliBadge(medali) {
                     <div class="flex items-center gap-3 shrink-0">
                         <Link
                             :href="route('login')"
-                            class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-xs font-bold text-blue-900 shadow-md transition hover:bg-blue-50 active:scale-95"
+                            class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-xs font-bold text-red-950 shadow-md transition hover:bg-red-50 active:scale-95"
                         >
                             <span>Masuk ke Portal SINDORA</span>
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">

@@ -28,7 +28,7 @@ function destroyRow(id){ if(!confirm('Hapus kelurahan ini?')) return; router.del
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Kelurahan</h2>
-                <Link v-if="can?.manage" :href="route('kelurahans.create')" class="rounded-lg bg-[#1e3a8a] dark:bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 dark:hover:bg-blue-600">Tambah Kelurahan</Link>
+                <Link v-if="can?.manage" :href="route('kelurahans.create')" class="rounded-lg bg-red-800 dark:bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-900 dark:hover:bg-red-600 shadow-sm">Tambah Kelurahan</Link>
             </div>
         </template>
         <div class="py-6"> <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

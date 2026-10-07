@@ -34,7 +34,7 @@ function destroyUser(id) {
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Manajemen User</h2>
-                <Link v-if="can?.create" :href="route('users.create')" class="rounded-lg bg-[#1e3a8a] dark:bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 dark:hover:bg-blue-600">Tambah User</Link>
+                <Link v-if="can?.create" :href="route('users.create')" class="rounded-lg bg-red-800 dark:bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-900 dark:hover:bg-red-600 shadow-sm">Tambah User</Link>
             </div>
         </template>
 

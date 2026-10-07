@@ -108,7 +108,7 @@ const groupedByDate = computed(() => {
                     <button @click="viewMode = viewMode === 'bulan' ? 'list' : 'bulan'" class="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-gray-200 px-3 py-1.5 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-600">
                         {{ viewMode === 'bulan' ? 'Tampilan List' : 'Tampilan Bulan' }}
                     </button>
-                    <Link :href="route('kejuaraans.index')" class="hidden sm:inline rounded-lg bg-[#1e3a8a] dark:bg-blue-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-blue-800 dark:hover:bg-blue-600">Kejuaraan</Link>
+                    <Link :href="route('kejuaraans.index')" class="hidden sm:inline rounded-lg bg-red-800 dark:bg-red-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-900 dark:hover:bg-red-600 shadow-sm">Kejuaraan</Link>
                     <Link :href="route('pembinaans.index')" class="hidden sm:inline rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">Pembinaan</Link>
                 </div>
             </div>
@@ -147,7 +147,7 @@ const groupedByDate = computed(() => {
                         <div class="px-2 py-3">Sen</div> <div class="px-2 py-3">Sel</div> <div class="px-2 py-3">Rab</div> <div class="px-2 py-3">Kam</div> <div class="px-2 py-3">Jum</div> <div class="px-2 py-3">Sab</div> <div class="px-2 py-3">Min</div> </div> <div class="grid grid-cols-7 divide-x divide-y divide-gray-200 dark:divide-gray-700">
                         <div v-for="(day, idx) in gridDays" :key="idx" class="min-h-[110px] bg-white dark:bg-gray-800 p-1.5">
                             <div v-if="day" class="flex flex-col"> <div class="mb-1 flex items-center justify-between">
-                                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold" :class="eventsForDay(day).length ? 'bg-[#1e3a8a] dark:bg-blue-700 text-white' : 'text-gray-700 dark:text-gray-300'">{{ day }}</span>
+                                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold" :class="eventsForDay(day).length ? 'bg-red-800 dark:bg-red-700 text-white' : 'text-gray-700 dark:text-gray-300'">{{ day }}</span>
                                     <span v-if="eventsForDay(day).length" class="text-[10px] text-gray-500 dark:text-gray-400">{{ eventsForDay(day).length }} event</span>
                                 </div>
                                 <div class="space-y-1"> <template v-for="ev in eventsForDay(day).slice(0,3)" :key="ev.id + '-' + day">
@@ -179,7 +179,7 @@ const groupedByDate = computed(() => {
                                     <span v-if="ev.organisasi"> · {{ ev.organisasi.nama }}</span>
                                 </div>
                             </div>
-                            <button @click="goEvent(ev)" class="shrink-0 rounded-lg bg-[#1e3a8a] dark:bg-blue-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-800 dark:hover:bg-blue-600">Lihat</button>
+                            <button @click="goEvent(ev)" class="shrink-0 rounded-lg bg-red-800 dark:bg-red-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-900 dark:hover:bg-red-600">Lihat</button>
                         </li>
                     </ul>
                 </div>

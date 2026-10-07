@@ -210,13 +210,13 @@ const showClusterNote = computed(() => sarprasCount.value + klubCount.value > 50
                         <div class="flex border-b border-gray-200 dark:border-gray-700">
                             <button
                                 @click="activeTab = 'sarpras'"
-                                :class="['flex-1 px-4 py-3 text-sm font-semibold', activeTab === 'sarpras' ? 'border-b-2 border-[#1e3a8a] bg-blue-50/50 text-[#1e3a8a] dark:bg-blue-900/20 dark:text-blue-200' : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/50']"
+                                :class="['flex-1 px-4 py-3 text-sm font-semibold', activeTab === 'sarpras' ? 'border-b-2 border-[#7f1d1d] bg-red-50/50 text-[#7f1d1d] dark:bg-red-950/30 dark:text-red-200' : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/50']"
                             >
                                 Sarpras <span class="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal dark:bg-gray-700">{{ sarprasCount }}</span>
                             </button>
                             <button
                                 @click="activeTab = 'klub'"
-                                :class="['flex-1 px-4 py-3 text-sm font-semibold', activeTab === 'klub' ? 'border-b-2 border-[#1e3a8a] bg-blue-50/50 text-[#1e3a8a] dark:bg-blue-900/20 dark:text-blue-200' : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/50']"
+                                :class="['flex-1 px-4 py-3 text-sm font-semibold', activeTab === 'klub' ? 'border-b-2 border-[#7f1d1d] bg-red-50/50 text-[#7f1d1d] dark:bg-red-950/30 dark:text-red-200' : 'text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/50']"
                             >
                                 Klub <span class="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-normal dark:bg-gray-700">{{ klubCount }}</span>
                             </button>
@@ -229,7 +229,7 @@ const showClusterNote = computed(() => sarprasCount.value + klubCount.value > 50
                                 <div v-if="sarpras.length === 0" class="px-4 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                     <p class="font-medium">Tidak ada Sarpras dengan koordinat.</p>
                                     <p class="mt-1 text-xs">Coba ubah filter atau tambah data Sarpras dengan latitude/longitude.</p>
-                                    <Link v-if="can?.manage_sarpras" :href="route('sarpras.index')" class="mt-3 inline-flex rounded-lg bg-[#1e3a8a] px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-800">Kelola Sarpras →</Link>
+                                    <Link v-if="can?.manage_sarpras" :href="route('sarpras.index')" class="mt-3 inline-flex rounded-lg bg-red-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-900">Kelola Sarpras →</Link>
                                 </div>
                                 <div
                                     v-for="s in sarpras"
@@ -256,7 +256,7 @@ const showClusterNote = computed(() => sarprasCount.value + klubCount.value > 50
                                         </p>
                                         <p v-if="s.latitude && s.longitude" class="mt-0.5 text-[11px] font-mono text-gray-400">{{ Number(s.latitude).toFixed(5) }}, {{ Number(s.longitude).toFixed(5) }}</p>
                                         <div class="mt-2 flex gap-2">
-                                            <button @click="flyTo(s.latitude ?? s.lat, s.longitude ?? s.lng)" class="rounded bg-[#1e3a8a] px-2 py-1 text-xs font-medium text-white hover:bg-blue-800 dark:bg-blue-700">Lihat di peta</button>
+                                            <button @click="flyTo(s.latitude ?? s.lat, s.longitude ?? s.lng)" class="rounded bg-red-800 px-2 py-1 text-xs font-medium text-white hover:bg-red-900 dark:bg-red-700">Lihat di peta</button>
                                             <Link :href="route('sarpras.show', s.id)" class="rounded border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Detail</Link>
                                         </div>
                                     </div>
@@ -268,14 +268,14 @@ const showClusterNote = computed(() => sarprasCount.value + klubCount.value > 50
                                 <div v-if="klubs.length === 0" class="px-4 py-10 text-center text-sm text-gray-500 dark:text-gray-400">
                                     <p class="font-medium">Tidak ada Klub dengan koordinat.</p>
                                     <p class="mt-1 text-xs">Coba ubah filter atau tambah data Klub dengan latitude/longitude.</p>
-                                    <Link v-if="can?.manage_klub" :href="route('klubs.index')" class="mt-3 inline-flex rounded-lg bg-[#1e3a8a] px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-800">Kelola Klub →</Link>
+                                    <Link v-if="can?.manage_klub" :href="route('klubs.index')" class="mt-3 inline-flex rounded-lg bg-red-800 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-900">Kelola Klub →</Link>
                                 </div>
                                 <div
                                     v-for="k in klubs"
                                     :key="k.id"
                                     class="group flex gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/40"
                                 >
-                                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-200 dark:ring-blue-800">
+                                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-700 ring-1 ring-red-200 dark:bg-red-950/30 dark:text-red-200 dark:ring-red-900">
                                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3l7 4v5c0 4-2.8 7-7 9-4.2-2-7-5-7-9V7l7-4z"/></svg>
                                     </div>
                                     <div class="min-w-0 flex-1">
@@ -292,7 +292,7 @@ const showClusterNote = computed(() => sarprasCount.value + klubCount.value > 50
                                         <p v-if="k.kontak?.hp || k.kontak_hp" class="text-xs text-gray-500 dark:text-gray-400">HP: {{ k.kontak?.hp ?? k.kontak_hp }}<span v-if="k.kontak?.email || k.kontak_email"> · {{ k.kontak?.email ?? k.kontak_email }}</span></p>
                                         <p v-if="k.latitude && k.longitude" class="mt-0.5 text-[11px] font-mono text-gray-400">{{ Number(k.latitude).toFixed(5) }}, {{ Number(k.longitude).toFixed(5) }}</p>
                                         <div class="mt-2 flex gap-2">
-                                            <button @click="flyTo(k.latitude ?? k.lat, k.longitude ?? k.lng)" class="rounded bg-[#1e3a8a] px-2 py-1 text-xs font-medium text-white hover:bg-blue-800 dark:bg-blue-700">Lihat di peta</button>
+                                            <button @click="flyTo(k.latitude ?? k.lat, k.longitude ?? k.lng)" class="rounded bg-red-800 px-2 py-1 text-xs font-medium text-white hover:bg-red-900 dark:bg-red-700">Lihat di peta</button>
                                             <Link :href="route('klubs.show', k.id)" class="rounded border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200">Detail</Link>
                                         </div>
                                     </div>
@@ -343,7 +343,7 @@ const showClusterNote = computed(() => sarprasCount.value + klubCount.value > 50
                                             <p v-if="s.fasilitas && fasilitasList(s.fasilitas).length" class="mt-1 text-xs text-gray-600">Fasilitas: {{ fasilitasList(s.fasilitas).join(', ') }}</p>
                                             <p class="mt-1 font-mono text-[11px] text-gray-500">{{ Number(s.latitude ?? s.lat).toFixed(6) }}, {{ Number(s.longitude ?? s.lng).toFixed(6) }}</p>
                                             <div class="mt-2 flex gap-2">
-                                                <a :href="route('sarpras.show', s.id)" class="inline-flex rounded bg-[#1e3a8a] px-2.5 py-1 text-xs font-semibold text-white hover:bg-blue-800">Detail Sarpras</a>
+                                                <a :href="route('sarpras.show', s.id)" class="inline-flex rounded bg-red-800 px-2.5 py-1 text-xs font-semibold text-white hover:bg-red-900">Detail Sarpras</a>
                                                 <a :href="`https://www.google.com/maps?q=${s.latitude ?? s.lat},${s.longitude ?? s.lng}`" target="_blank" rel="noopener" class="inline-flex rounded border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50">Google Maps</a>
                                             </div>
                                         </div>
@@ -369,7 +369,7 @@ const showClusterNote = computed(() => sarprasCount.value + klubCount.value > 50
                                             <p v-if="k.kontak?.hp || k.kontak_hp" class="text-xs text-gray-600">Kontak: {{ k.kontak?.hp ?? k.kontak_hp }}<span v-if="k.kontak?.email || k.kontak_email"> · {{ k.kontak?.email ?? k.kontak_email }}</span></p>
                                             <p class="mt-1 font-mono text-[11px] text-gray-500">{{ Number(k.latitude ?? k.lat).toFixed(6) }}, {{ Number(k.longitude ?? k.lng).toFixed(6) }}</p>
                                             <div class="mt-2 flex gap-2">
-                                                <a :href="route('klubs.show', k.id)" class="inline-flex rounded bg-[#1e3a8a] px-2.5 py-1 text-xs font-semibold text-white hover:bg-blue-800">Detail Klub</a>
+                                                <a :href="route('klubs.show', k.id)" class="inline-flex rounded bg-red-800 px-2.5 py-1 text-xs font-semibold text-white hover:bg-red-900">Detail Klub</a>
                                                 <a :href="`https://www.google.com/maps?q=${k.latitude ?? k.lat},${k.longitude ?? k.lng}`" target="_blank" rel="noopener" class="inline-flex rounded border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50">Google Maps</a>
                                             </div>
                                         </div>

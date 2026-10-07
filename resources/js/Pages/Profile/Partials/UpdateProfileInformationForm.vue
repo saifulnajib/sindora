@@ -77,7 +77,7 @@ const form = useForm({
             <div class="rounded-lg border border-gray-100 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-700/40">
                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Roles & Permissions</p>
                 <div class="mt-2 flex flex-wrap gap-1.5">
-                    <span v-for="r in roles" :key="r" class="inline-flex rounded-full bg-[#1e3a8a] dark:bg-blue-700 px-2.5 py-1 text-xs font-semibold text-white">{{ r }}</span>
+                    <span v-for="r in roles" :key="r" class="inline-flex rounded-full bg-red-800 dark:bg-red-700 px-2.5 py-1 text-xs font-semibold text-white">{{ r }}</span>
                     <span v-if="roles.length===0" class="text-xs text-gray-500 dark:text-gray-400">no role</span>
                 </div>
                 <p v-if="permissions.length" class="mt-2 text-xs text-gray-500 dark:text-gray-400">Permissions: {{ permissions.join(', ') }}</p>

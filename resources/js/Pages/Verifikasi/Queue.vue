@@ -217,7 +217,7 @@ function badgeClass(color) {
                             v-for="tab in tabs"
                             :key="tab.key"
                             @click="switchTab(tab.key)"
-                            :class="['rounded-t-lg border-b-2 px-4 py-2 text-sm font-medium dark:text-gray-100', activeTab===tab.key ? 'border-[#1e3a8a] text-[#1e3a8a] bg-blue-50' : 'border-transparent text-gray-600 hover:text-gray-800 dark:hover:text-gray-200']"
+                            :class="['rounded-t-lg border-b-2 px-4 py-2 text-sm font-medium dark:text-gray-100', activeTab===tab.key ? 'border-[#7f1d1d] text-[#7f1d1d] bg-red-50 dark:bg-red-950/40 dark:text-red-200' : 'border-transparent text-gray-600 hover:text-gray-800 dark:hover:text-gray-200']"
                         >
                             {{ tab.label }} <span class="ml-1 rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs dark:text-gray-300">{{ typeof tab.count === 'object' ? tab.count.value : tab.count }}</span>
                         </button>
