@@ -58,6 +58,8 @@ class AtletResource extends JsonResource
             'klub' => $this->whenLoaded('klub', fn () => $this->klub ? ['id' => $this->klub->id, 'nama' => $this->klub->nama] : null),
             'cabor_id' => $this->cabor_id,
             'cabor' => $this->whenLoaded('cabor', fn () => $this->cabor ? ['id' => $this->cabor->id, 'nama' => $this->cabor->nama, 'kode' => $this->cabor->kode] : null),
+            'cabors' => $this->formatCabors($statusPembinaanValue),
+            'cabor_names' => $this->formatCaborNames($statusPembinaanValue),
             'pelatih_id' => $this->pelatih_id,
             'pelatih' => $this->whenLoaded('pelatih', fn () => $this->pelatih ? ['id' => $this->pelatih->id, 'nama' => $this->pelatih->nama] : null),
             'kelurahan_id' => $this->kelurahan_id,
@@ -123,4 +125,65 @@ class AtletResource extends JsonResource
 
         return mb_substr($alamat, 0, 3).' ***';
     }
+
+    private function formatCabors($defaultStatus = 'daerah'): array
+    {
+        if ($this->relationLoaded('atletCabors')) {
+            return $this->atletCabors->map(function ($ac) {
+                return [
+                    'id' => $ac->id,
+                    'cabor_id' => $ac->cabor_id,
+                    'cabor_nama' => $ac->cabor?->nama,
+                    'cabor_kode' => $ac->cabor?->kode,
+                    'klub_id' => $ac->klub_id,
+                    'klub_nama' => $ac->klub?->nama,
+                    'pelatih_id' => $ac->pelatih_id,
+                    'pelatih_nama' => $ac->pelatih?->nama,
+                    'kelas_tanding' => $ac->kelas_tanding,
+                    'status_pembinaan' => $ac->status_pembinaan ?? 'daerah',
+                ];
+            })->values()->toArray();
+        }
+
+        if ($this->relationLoaded('cabors')) {
+            return $this->cabors->map(function ($c) {
+                return [
+                    'id' => $c->pivot?->id,
+                    'cabor_id' => $c->id,
+                    'cabor_nama' => $c->nama,
+                    'cabor_kode' => $c->kode,
+                    'klub_id' => $c->pivot?->klub_id,
+                    'pelatih_id' => $c->pivot?->pelatih_id,
+                    'kelas_tanding' => $c->pivot?->kelas_tanding,
+                    'status_pembinaan' => $c->pivot?->status_pembinaan ?? 'daerah',
+                ];
+            })->values()->toArray();
+        }
+
+        if ($this->cabor_id) {
+            return [
+                [
+                    'id' => null,
+                    'cabor_id' => $this->cabor_id,
+                    'cabor_nama' => $this->cabor?->nama,
+                    'cabor_kode' => $this->cabor?->kode,
+                    'klub_id' => $this->klub_id,
+                    'klub_nama' => $this->klub?->nama,
+                    'pelatih_id' => $this->pelatih_id,
+                    'pelatih_nama' => $this->pelatih?->nama,
+                    'kelas_tanding' => $this->kelas_tanding,
+                    'status_pembinaan' => $defaultStatus ?? 'daerah',
+                ],
+            ];
+        }
+
+        return [];
+    }
+
+    private function formatCaborNames($defaultStatus = 'daerah'): string
+    {
+        $list = $this->formatCabors($defaultStatus);
+        return collect($list)->pluck('cabor_nama')->filter()->unique()->join(', ');
+    }
 }
+

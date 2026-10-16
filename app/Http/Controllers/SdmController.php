@@ -61,7 +61,20 @@ class SdmController extends Controller
             })
             ->orderBy('nama');
 
+        $user = $request->user();
+        if ($user && $user->isPengkot()) {
+            $query->whereIn('cabor_id', $user->getAssignedCaborIds());
+        }
+
         $paginator = $query->paginate(10)->withQueryString();
+
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+        $klubOptions = $assignedIds !== null
+            ? Klub::query()->whereIn('cabor_id', $assignedIds)->select('id', 'nama', 'cabor_id')->orderBy('nama')->get()
+            : Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama')->get();
 
         return Inertia::render('Sdm/Index', [
             'sdms' => [
@@ -83,8 +96,8 @@ class SdmController extends Controller
                 'cabor_id' => $caborId,
                 'expired' => $expired,
             ],
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
-            'klubs' => Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
+            'klubs' => $klubOptions,
             'can' => [
                 'manage' => $request->user()->can('sdm.manage'),
             ],
@@ -95,10 +108,19 @@ class SdmController extends Controller
     {
         $this->authorize('create', Sdm::class);
 
+        $user = $request->user();
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+        $klubOptions = $assignedIds !== null
+            ? Klub::query()->whereIn('cabor_id', $assignedIds)->select('id', 'nama', 'cabor_id')->orderBy('nama')->get()
+            : Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama')->get();
+
         return Inertia::render('Sdm/Form', [
             'sdm' => null,
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
-            'klubs' => Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
+            'klubs' => $klubOptions,
             'kelurahans' => Kelurahan::query()->select('id', 'nama', 'kecamatan_id')->orderBy('nama')->get(),
             'isEdit' => false,
         ]);
@@ -111,6 +133,12 @@ class SdmController extends Controller
         $validated = $request->validated();
 
         $data = collect($validated)->except(['foto', 'lisensi_nomor', 'lisensi_level', 'lisensi_terbit'])->toArray();
+
+        if ($request->user() && $request->user()->isPengkot()) {
+            if (!empty($data['cabor_id']) && !$request->user()->managesCabor((int) $data['cabor_id'])) {
+                abort(403, 'Anda tidak memiliki hak kelola untuk cabor ini.');
+            }
+        }
 
         // Map aliased fields to actual DB columns
         if (isset($validated['lisensi_nomor'])) {
@@ -149,12 +177,21 @@ class SdmController extends Controller
     {
         $this->authorize('view', $sdm);
 
+        $user = $request->user();
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+        $klubOptions = $assignedIds !== null
+            ? Klub::query()->whereIn('cabor_id', $assignedIds)->select('id', 'nama', 'cabor_id')->orderBy('nama')->get()
+            : Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama')->get();
+
         $sdm->load(['cabor', 'klub', 'kelurahan']);
 
         return Inertia::render('Sdm/Form', [
             'sdm' => (new SdmResource($sdm))->resolve(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
-            'klubs' => Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
+            'klubs' => $klubOptions,
             'kelurahans' => Kelurahan::query()->select('id', 'nama', 'kecamatan_id')->orderBy('nama')->get(),
             'isEdit' => false,
             'isShow' => true,
@@ -165,12 +202,21 @@ class SdmController extends Controller
     {
         $this->authorize('update', $sdm);
 
+        $user = $request->user();
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+        $klubOptions = $assignedIds !== null
+            ? Klub::query()->whereIn('cabor_id', $assignedIds)->select('id', 'nama', 'cabor_id')->orderBy('nama')->get()
+            : Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama')->get();
+
         $sdm->load(['cabor', 'klub', 'kelurahan']);
 
         return Inertia::render('Sdm/Form', [
             'sdm' => (new SdmResource($sdm))->resolve(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
-            'klubs' => Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
+            'klubs' => $klubOptions,
             'kelurahans' => Kelurahan::query()->select('id', 'nama', 'kecamatan_id')->orderBy('nama')->get(),
             'isEdit' => true,
         ]);
@@ -183,6 +229,12 @@ class SdmController extends Controller
         $validated = $request->validated();
 
         $data = collect($validated)->except(['foto', 'lisensi_nomor', 'lisensi_level', 'lisensi_terbit'])->toArray();
+
+        if ($request->user() && $request->user()->isPengkot()) {
+            if (!empty($data['cabor_id']) && !$request->user()->managesCabor((int) $data['cabor_id'])) {
+                abort(403, 'Anda tidak memiliki hak kelola untuk cabor ini.');
+            }
+        }
 
         if (array_key_exists('lisensi_nomor', $validated)) {
             $data['nomor_lisensi'] = $validated['lisensi_nomor'];

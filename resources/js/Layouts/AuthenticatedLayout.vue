@@ -248,13 +248,19 @@ const navMasterData = computed(() => [
                 </div>
 
                 <!-- Role-based admin section -->
-                <div v-if="hasRole('super_admin') || can.manage_user || can.view_user" class="mb-2">
+                <div v-if="hasRole('super_admin') || can.manage_user || can.view_user || can.manage_role" class="mb-2">
                     <p class="mb-2 px-3 text-[11px] font-semibold uppercase tracking-widest text-red-300">Administrasi</p>
                     <ul class="space-y-1">
                         <li v-show="can.manage_user || can.view_user || hasRole('super_admin')">
                             <Link :href="route('users.index')" :class="['sindora-sidebar-link', isRouteActive('users.*') ? 'sindora-sidebar-link-active' : 'sindora-sidebar-link-inactive']" @click="showingSidebar=false">
                                 <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15a3 3 0 100-6 3 3 0 000 6z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06A1.65 1.65 0 0015 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 009 15a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 15z" /></svg>
                                 Manajemen User
+                            </Link>
+                        </li>
+                        <li v-show="can.manage_role || hasRole('super_admin')">
+                            <Link :href="route('roles.index')" :class="['sindora-sidebar-link', isRouteActive('roles.*') ? 'sindora-sidebar-link-active' : 'sindora-sidebar-link-inactive']" @click="showingSidebar=false">
+                                <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                Hak Akses & Role
                             </Link>
                         </li>
                         <li>

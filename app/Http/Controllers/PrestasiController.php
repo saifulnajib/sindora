@@ -47,7 +47,27 @@ class PrestasiController extends Controller
             $query->whereHas('atlet', fn ($q) => $q->where('klub_id', $user->klub_id));
         }
 
+        if ($user && $user->isPengkot()) {
+            $query->whereIn('cabor_id', $user->getAssignedCaborIds());
+        }
+
         $paginator = $query->paginate(10)->withQueryString();
+
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+        $kejuaraanOptions = $assignedIds !== null
+            ? Kejuaraan::query()->where(fn ($q) => $q->whereNull('cabor_id')->orWhereIn('cabor_id', $assignedIds))->select('id', 'nama', 'tingkat')->orderBy('nama')->get()
+            : Kejuaraan::query()->select('id', 'nama', 'tingkat')->orderBy('nama')->get();
+
+        $atletQuery = Atlet::query()->select('id', 'nama', 'klub_id', 'cabor_id')->orderBy('nama');
+        if ($assignedIds !== null) {
+            $atletQuery->where(function ($q) use ($assignedIds) {
+                $q->whereIn('cabor_id', $assignedIds)
+                    ->orWhereHas('cabors', fn ($c) => $c->whereIn('cabors.id', $assignedIds));
+            });
+        }
 
         return Inertia::render('Prestasi/Index', [
             'prestasis' => [
@@ -70,9 +90,9 @@ class PrestasiController extends Controller
                 'kejuaraan_id' => $kejuaraanId,
                 'verification_status' => $status,
             ],
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
-            'kejuaraans' => Kejuaraan::query()->select('id', 'nama', 'tingkat')->orderBy('nama')->get(),
-            'atlets' => Atlet::query()->select('id', 'nama', 'klub_id')->orderBy('nama')->limit(500)->get(),
+            'cabors' => $caborOptions,
+            'kejuaraans' => $kejuaraanOptions,
+            'atlets' => $atletQuery->limit(500)->get(),
             'can' => [
                 'manage' => $request->user()->can('prestasi.manage'),
             ],
@@ -84,16 +104,33 @@ class PrestasiController extends Controller
         $this->authorize('create', Prestasi::class);
 
         $user = $request->user();
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
         $atletQuery = Atlet::query()->select('id', 'nama', 'klub_id', 'cabor_id')->orderBy('nama');
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
-            $atletQuery->where('klub_id', $user->klub_id);
+            $atletQuery->where(function ($q) use ($user) {
+                $q->where('klub_id', $user->klub_id)
+                    ->orWhereHas('atletCabors', fn ($ac) => $ac->where('klub_id', $user->klub_id));
+            });
         }
+        if ($assignedIds !== null) {
+            $atletQuery->where(function ($q) use ($assignedIds) {
+                $q->whereIn('cabor_id', $assignedIds)
+                    ->orWhereHas('cabors', fn ($c) => $c->whereIn('cabors.id', $assignedIds));
+            });
+        }
+
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+        $kejuaraanOptions = $assignedIds !== null
+            ? Kejuaraan::query()->where(fn ($q) => $q->whereNull('cabor_id')->orWhereIn('cabor_id', $assignedIds))->select('id', 'nama', 'tingkat')->orderBy('nama')->get()
+            : Kejuaraan::query()->select('id', 'nama', 'tingkat')->orderBy('nama')->get();
 
         return Inertia::render('Prestasi/Form', [
             'prestasi' => null,
             'atlets' => $atletQuery->get(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
-            'kejuaraans' => Kejuaraan::query()->select('id', 'nama', 'tingkat')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
+            'kejuaraans' => $kejuaraanOptions,
             'isEdit' => false,
         ]);
     }
@@ -103,13 +140,20 @@ class PrestasiController extends Controller
         $this->authorize('create', Prestasi::class);
 
         $validated = $request->validated();
+        $user = $request->user();
 
         // Scope check: operator_klub can only create prestasi for own klub's atlet
-        $user = $request->user();
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
             $atlet = Atlet::find($validated['atlet_id']);
-            if (! $atlet || (int) $atlet->klub_id !== (int) $user->klub_id) {
+            $isOwnKlub = $atlet && ((int) $atlet->klub_id === (int) $user->klub_id || $atlet->atletCabors()->where('klub_id', $user->klub_id)->exists());
+            if (! $isOwnKlub) {
                 abort(403, 'Anda hanya dapat mencatat prestasi atlet dari klub Anda.');
+            }
+        }
+
+        if ($user && $user->isPengkot()) {
+            if (!empty($validated['cabor_id']) && !$user->managesCabor((int) $validated['cabor_id'])) {
+                abort(403, 'Anda tidak memiliki hak kelola untuk cabor ini.');
             }
         }
 
@@ -131,16 +175,33 @@ class PrestasiController extends Controller
         $prestasi->load(['atlet', 'cabor', 'kejuaraan']);
 
         $user = $request->user();
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
         $atletQuery = Atlet::query()->select('id', 'nama', 'klub_id', 'cabor_id')->orderBy('nama');
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
-            $atletQuery->where('klub_id', $user->klub_id);
+            $atletQuery->where(function ($q) use ($user) {
+                $q->where('klub_id', $user->klub_id)
+                    ->orWhereHas('atletCabors', fn ($ac) => $ac->where('klub_id', $user->klub_id));
+            });
         }
+        if ($assignedIds !== null) {
+            $atletQuery->where(function ($q) use ($assignedIds) {
+                $q->whereIn('cabor_id', $assignedIds)
+                    ->orWhereHas('cabors', fn ($c) => $c->whereIn('cabors.id', $assignedIds));
+            });
+        }
+
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+        $kejuaraanOptions = $assignedIds !== null
+            ? Kejuaraan::query()->where(fn ($q) => $q->whereNull('cabor_id')->orWhereIn('cabor_id', $assignedIds))->select('id', 'nama', 'tingkat')->orderBy('nama')->get()
+            : Kejuaraan::query()->select('id', 'nama', 'tingkat')->orderBy('nama')->get();
 
         return Inertia::render('Prestasi/Form', [
             'prestasi' => (new PrestasiResource($prestasi))->resolve(),
             'atlets' => $atletQuery->get(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
-            'kejuaraans' => Kejuaraan::query()->select('id', 'nama', 'tingkat')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
+            'kejuaraans' => $kejuaraanOptions,
             'isEdit' => false,
             'isShow' => true,
         ]);
@@ -153,16 +214,33 @@ class PrestasiController extends Controller
         $prestasi->load(['atlet', 'cabor', 'kejuaraan']);
 
         $user = $request->user();
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
         $atletQuery = Atlet::query()->select('id', 'nama', 'klub_id', 'cabor_id')->orderBy('nama');
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
-            $atletQuery->where('klub_id', $user->klub_id);
+            $atletQuery->where(function ($q) use ($user) {
+                $q->where('klub_id', $user->klub_id)
+                    ->orWhereHas('atletCabors', fn ($ac) => $ac->where('klub_id', $user->klub_id));
+            });
         }
+        if ($assignedIds !== null) {
+            $atletQuery->where(function ($q) use ($assignedIds) {
+                $q->whereIn('cabor_id', $assignedIds)
+                    ->orWhereHas('cabors', fn ($c) => $c->whereIn('cabors.id', $assignedIds));
+            });
+        }
+
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+        $kejuaraanOptions = $assignedIds !== null
+            ? Kejuaraan::query()->where(fn ($q) => $q->whereNull('cabor_id')->orWhereIn('cabor_id', $assignedIds))->select('id', 'nama', 'tingkat')->orderBy('nama')->get()
+            : Kejuaraan::query()->select('id', 'nama', 'tingkat')->orderBy('nama')->get();
 
         return Inertia::render('Prestasi/Form', [
             'prestasi' => (new PrestasiResource($prestasi))->resolve(),
             'atlets' => $atletQuery->get(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
-            'kejuaraans' => Kejuaraan::query()->select('id', 'nama', 'tingkat')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
+            'kejuaraans' => $kejuaraanOptions,
             'isEdit' => true,
         ]);
     }
@@ -176,8 +254,15 @@ class PrestasiController extends Controller
         $user = $request->user();
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
             $atlet = Atlet::find($validated['atlet_id']);
-            if (! $atlet || (int) $atlet->klub_id !== (int) $user->klub_id) {
+            $isOwnKlub = $atlet && ((int) $atlet->klub_id === (int) $user->klub_id || $atlet->atletCabors()->where('klub_id', $user->klub_id)->exists());
+            if (! $isOwnKlub) {
                 abort(403, 'Anda hanya dapat mencatat prestasi atlet dari klub Anda.');
+            }
+        }
+
+        if ($user && $user->isPengkot()) {
+            if (!empty($validated['cabor_id']) && !$user->managesCabor((int) $validated['cabor_id'])) {
+                abort(403, 'Anda tidak memiliki hak kelola untuk cabor ini.');
             }
         }
 

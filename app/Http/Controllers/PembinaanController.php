@@ -41,7 +41,17 @@ class PembinaanController extends Controller
             ->orderByDesc('periode_mulai')
             ->orderBy('nama_program');
 
+        $user = $request->user();
+        if ($user && $user->isPengkot()) {
+            $query->whereIn('cabor_id', $user->getAssignedCaborIds());
+        }
+
         $paginator = $query->paginate(10)->withQueryString();
+
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
 
         return Inertia::render('Pembinaan/Index', [
             'pembinaans' => [
@@ -65,7 +75,7 @@ class PembinaanController extends Controller
                 'cabor_id' => $caborId,
                 'verification_status' => $verification,
             ],
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
             'organisasis' => Organisasi::query()->select('id', 'nama')->orderBy('nama')->get(),
             'can' => [
                 'manage' => $request->user()->can('pembinaan.manage'),
@@ -78,13 +88,33 @@ class PembinaanController extends Controller
     {
         $this->authorize('create', Pembinaan::class);
 
+        $user = $request->user();
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+
+        $atletQuery = Atlet::query()->select('id', 'nama', 'klub_id', 'cabor_id')->orderBy('nama');
+        $klubQuery = Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama');
+        $sdmQuery = Sdm::query()->select('id', 'nama', 'tipe', 'klub_id', 'cabor_id')->orderBy('nama');
+
+        if ($assignedIds !== null) {
+            $atletQuery->where(function ($q) use ($assignedIds) {
+                $q->whereIn('cabor_id', $assignedIds)
+                    ->orWhereHas('cabors', fn ($c) => $c->whereIn('cabors.id', $assignedIds));
+            });
+            $klubQuery->whereIn('cabor_id', $assignedIds);
+            $sdmQuery->whereIn('cabor_id', $assignedIds);
+        }
+
         return Inertia::render('Pembinaan/Form', [
             'pembinaan' => null,
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
             'organisasis' => Organisasi::query()->select('id', 'nama')->orderBy('nama')->get(),
-            'atlets' => Atlet::query()->select('id', 'nama', 'klub_id', 'cabor_id')->orderBy('nama')->limit(500)->get(),
-            'klubs' => Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama')->limit(500)->get(),
-            'sdms' => Sdm::query()->select('id', 'nama', 'tipe', 'klub_id', 'cabor_id')->orderBy('nama')->limit(500)->get(),
+            'atlets' => $atletQuery->limit(500)->get(),
+            'klubs' => $klubQuery->limit(500)->get(),
+            'sdms' => $sdmQuery->limit(500)->get(),
             'isEdit' => false,
         ]);
     }
@@ -101,6 +131,12 @@ class PembinaanController extends Controller
 
         $data = collect($validated)->except(['peserta_atlet_ids', 'peserta_klub_ids', 'peserta_sdm_ids'])->toArray();
 
+        if ($request->user() && $request->user()->isPengkot()) {
+            if (!empty($data['cabor_id']) && !$request->user()->managesCabor((int) $data['cabor_id'])) {
+                abort(403, 'Anda tidak memiliki hak kelola untuk cabor ini.');
+            }
+        }
+
         // verification_status not input — default draft via DB/model
         $pembinaan = Pembinaan::create($data);
 
@@ -115,13 +151,33 @@ class PembinaanController extends Controller
 
         $pembinaan->load(['organisasi', 'cabor', 'peserta.peserta'])->loadCount(['atlets', 'klubs', 'sdms']);
 
+        $user = $request->user();
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+
+        $atletQuery = Atlet::query()->select('id', 'nama', 'klub_id', 'cabor_id')->orderBy('nama');
+        $klubQuery = Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama');
+        $sdmQuery = Sdm::query()->select('id', 'nama', 'tipe', 'klub_id', 'cabor_id')->orderBy('nama');
+
+        if ($assignedIds !== null) {
+            $atletQuery->where(function ($q) use ($assignedIds) {
+                $q->whereIn('cabor_id', $assignedIds)
+                    ->orWhereHas('cabors', fn ($c) => $c->whereIn('cabors.id', $assignedIds));
+            });
+            $klubQuery->whereIn('cabor_id', $assignedIds);
+            $sdmQuery->whereIn('cabor_id', $assignedIds);
+        }
+
         return Inertia::render('Pembinaan/Form', [
             'pembinaan' => (new PembinaanResource($pembinaan))->resolve(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
             'organisasis' => Organisasi::query()->select('id', 'nama')->orderBy('nama')->get(),
-            'atlets' => Atlet::query()->select('id', 'nama', 'klub_id', 'cabor_id')->orderBy('nama')->limit(500)->get(),
-            'klubs' => Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama')->limit(500)->get(),
-            'sdms' => Sdm::query()->select('id', 'nama', 'tipe', 'klub_id', 'cabor_id')->orderBy('nama')->limit(500)->get(),
+            'atlets' => $atletQuery->limit(500)->get(),
+            'klubs' => $klubQuery->limit(500)->get(),
+            'sdms' => $sdmQuery->limit(500)->get(),
             'isEdit' => false,
             'isShow' => true,
         ]);
@@ -133,13 +189,33 @@ class PembinaanController extends Controller
 
         $pembinaan->load(['organisasi', 'cabor', 'peserta.peserta'])->loadCount(['atlets', 'klubs', 'sdms']);
 
+        $user = $request->user();
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+
+        $atletQuery = Atlet::query()->select('id', 'nama', 'klub_id', 'cabor_id')->orderBy('nama');
+        $klubQuery = Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama');
+        $sdmQuery = Sdm::query()->select('id', 'nama', 'tipe', 'klub_id', 'cabor_id')->orderBy('nama');
+
+        if ($assignedIds !== null) {
+            $atletQuery->where(function ($q) use ($assignedIds) {
+                $q->whereIn('cabor_id', $assignedIds)
+                    ->orWhereHas('cabors', fn ($c) => $c->whereIn('cabors.id', $assignedIds));
+            });
+            $klubQuery->whereIn('cabor_id', $assignedIds);
+            $sdmQuery->whereIn('cabor_id', $assignedIds);
+        }
+
         return Inertia::render('Pembinaan/Form', [
             'pembinaan' => (new PembinaanResource($pembinaan))->resolve(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
             'organisasis' => Organisasi::query()->select('id', 'nama')->orderBy('nama')->get(),
-            'atlets' => Atlet::query()->select('id', 'nama', 'klub_id', 'cabor_id')->orderBy('nama')->limit(500)->get(),
-            'klubs' => Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama')->limit(500)->get(),
-            'sdms' => Sdm::query()->select('id', 'nama', 'tipe', 'klub_id', 'cabor_id')->orderBy('nama')->limit(500)->get(),
+            'atlets' => $atletQuery->limit(500)->get(),
+            'klubs' => $klubQuery->limit(500)->get(),
+            'sdms' => $sdmQuery->limit(500)->get(),
             'isEdit' => true,
         ]);
     }
@@ -155,6 +231,12 @@ class PembinaanController extends Controller
         $pesertaSdmIds = $validated['peserta_sdm_ids'] ?? [];
 
         $data = collect($validated)->except(['peserta_atlet_ids', 'peserta_klub_ids', 'peserta_sdm_ids'])->toArray();
+
+        if ($request->user() && $request->user()->isPengkot()) {
+            if (!empty($data['cabor_id']) && !$request->user()->managesCabor((int) $data['cabor_id'])) {
+                abort(403, 'Anda tidak memiliki hak kelola untuk cabor ini.');
+            }
+        }
 
         $pembinaan->update($data);
 

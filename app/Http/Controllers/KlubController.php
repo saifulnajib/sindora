@@ -38,7 +38,16 @@ class KlubController extends Controller
             ->when($kecamatanId, fn ($q) => $q->where('kecamatan_id', $kecamatanId))
             ->orderBy('nama');
 
+        $user = $request->user();
+        if ($user && $user->isPengkot()) {
+            $query->whereIn('cabor_id', $user->getAssignedCaborIds());
+        }
+
         $paginator = $query->paginate(10)->withQueryString();
+
+        $caborOptions = ($user && $user->isPengkot())
+            ? Cabor::query()->whereIn('id', $user->getAssignedCaborIds())->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
 
         return Inertia::render('Klub/Index', [
             'klubs' => [
@@ -60,7 +69,7 @@ class KlubController extends Controller
                 'kelurahan_id' => $kelurahanId,
                 'kecamatan_id' => $kecamatanId,
             ],
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
             'kelurahans' => Kelurahan::query()->select('id', 'nama', 'kecamatan_id')->orderBy('nama')->get(),
             'kecamatans' => Kecamatan::query()->select('id', 'nama')->orderBy('nama')->get(),
             'can' => [
@@ -73,9 +82,14 @@ class KlubController extends Controller
     {
         $this->authorize('create', Klub::class);
 
+        $user = $request->user();
+        $caborOptions = ($user && $user->isPengkot())
+            ? Cabor::query()->whereIn('id', $user->getAssignedCaborIds())->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+
         return Inertia::render('Klub/Form', [
             'klub' => null,
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
             'kelurahans' => Kelurahan::query()->select('id', 'nama', 'kecamatan_id')->with('kecamatan:id,nama')->orderBy('nama')->get(),
             'kecamatans' => Kecamatan::query()->select('id', 'nama')->orderBy('nama')->get(),
             'isEdit' => false,
@@ -89,6 +103,12 @@ class KlubController extends Controller
         $validated = $request->validated();
 
         $data = collect($validated)->except(['logo', 'dokumen_legalitas'])->toArray();
+
+        if ($request->user() && $request->user()->isPengkot()) {
+            if (! $request->user()->managesCabor((int) $data['cabor_id'])) {
+                abort(403, 'Anda tidak memiliki hak kelola untuk cabor ini.');
+            }
+        }
 
         if ($request->hasFile('logo')) {
             $data['logo_path'] = $request->file('logo')->store('klub-logos', 'public');
@@ -115,11 +135,16 @@ class KlubController extends Controller
     {
         $this->authorize('view', $klub);
 
+        $user = $request->user();
+        $caborOptions = ($user && $user->isPengkot())
+            ? Cabor::query()->whereIn('id', $user->getAssignedCaborIds())->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+
         $klub->load(['cabor', 'kelurahan', 'kecamatan'])->loadCount(['atlets']);
 
         return Inertia::render('Klub/Form', [
             'klub' => (new KlubResource($klub))->resolve(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
             'kelurahans' => Kelurahan::query()->select('id', 'nama', 'kecamatan_id')->with('kecamatan:id,nama')->orderBy('nama')->get(),
             'kecamatans' => Kecamatan::query()->select('id', 'nama')->orderBy('nama')->get(),
             'isEdit' => false,
@@ -131,11 +156,16 @@ class KlubController extends Controller
     {
         $this->authorize('update', $klub);
 
+        $user = $request->user();
+        $caborOptions = ($user && $user->isPengkot())
+            ? Cabor::query()->whereIn('id', $user->getAssignedCaborIds())->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+
         $klub->load(['cabor', 'kelurahan', 'kecamatan']);
 
         return Inertia::render('Klub/Form', [
             'klub' => (new KlubResource($klub))->resolve(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
             'kelurahans' => Kelurahan::query()->select('id', 'nama', 'kecamatan_id')->with('kecamatan:id,nama')->orderBy('nama')->get(),
             'kecamatans' => Kecamatan::query()->select('id', 'nama')->orderBy('nama')->get(),
             'isEdit' => true,
@@ -149,6 +179,12 @@ class KlubController extends Controller
         $validated = $request->validated();
 
         $data = collect($validated)->except(['logo', 'dokumen_legalitas'])->toArray();
+
+        if ($request->user() && $request->user()->isPengkot()) {
+            if (! $request->user()->managesCabor((int) $data['cabor_id'])) {
+                abort(403, 'Anda tidak memiliki hak kelola untuk cabor ini.');
+            }
+        }
 
         if ($request->hasFile('logo')) {
             if ($klub->logo_path) {

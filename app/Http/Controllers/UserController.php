@@ -26,7 +26,7 @@ class UserController extends Controller
         $roleFilter = $request->string('role')->toString();
 
         $query = User::query()
-            ->with(['roles', 'klub', 'organisasi', 'cabor'])
+            ->with(['roles', 'klub', 'organisasi', 'cabor', 'cabors'])
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($qq) use ($search) {
                     $qq->where('name', 'like', "%{$search}%")
@@ -39,6 +39,8 @@ class UserController extends Controller
             ->latest('id');
 
         $users = $query->paginate(10)->withQueryString();
+
+        $officialRoles = $this->getOfficialRoles();
 
         return Inertia::render('Users/Index', [
             'users' => [
@@ -60,7 +62,7 @@ class UserController extends Controller
                 'search' => $search,
                 'role' => $roleFilter,
             ],
-            'roles' => Role::query()->pluck('name')->values()->all(),
+            'roles' => $officialRoles,
             'can' => [
                 'create' => $request->user()->can('user.manage'),
             ],
@@ -73,10 +75,10 @@ class UserController extends Controller
 
         return Inertia::render('Users/Form', [
             'user' => null,
-            'roles' => Role::query()->pluck('name')->values()->all(),
+            'roles' => $this->getOfficialRoles(),
             'klubs' => Klub::query()->select('id', 'nama')->orderBy('nama')->get(),
             'organisasis' => Organisasi::query()->select('id', 'nama')->orderBy('nama')->get(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'organisasi_id')->orderBy('nama')->get(),
+            'cabors' => Cabor::query()->select('id', 'nama', 'kategori', 'organisasi_id')->orderBy('nama')->get(),
             'isEdit' => false,
         ]);
     }
@@ -87,16 +89,23 @@ class UserController extends Controller
 
         $data = $request->validated();
 
+        $caborIds = isset($data['cabor_ids']) && is_array($data['cabor_ids'])
+            ? array_map('intval', $data['cabor_ids'])
+            : (! empty($data['cabor_id']) ? [(int) $data['cabor_id']] : []);
+
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'klub_id' => $data['klub_id'] ?? null,
             'organisasi_id' => $data['organisasi_id'] ?? null,
-            'cabor_id' => $data['cabor_id'] ?? null,
+            'cabor_id' => $caborIds[0] ?? ($data['cabor_id'] ?? null),
         ]);
 
         $user->syncRoles($data['roles']);
+        if (! empty($caborIds)) {
+            $user->cabors()->sync($caborIds);
+        }
 
         return redirect()->route('users.index')->with('success', 'User berhasil dibuat.');
     }
@@ -105,14 +114,14 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
 
-        $user->load(['roles', 'klub', 'organisasi', 'cabor']);
+        $user->load(['roles', 'klub', 'organisasi', 'cabor', 'cabors']);
 
         return Inertia::render('Users/Form', [
             'user' => (new UserResource($user))->resolve(),
-            'roles' => Role::query()->pluck('name')->values()->all(),
+            'roles' => $this->getOfficialRoles(),
             'klubs' => Klub::query()->select('id', 'nama')->orderBy('nama')->get(),
             'organisasis' => Organisasi::query()->select('id', 'nama')->orderBy('nama')->get(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'organisasi_id')->orderBy('nama')->get(),
+            'cabors' => Cabor::query()->select('id', 'nama', 'kategori', 'organisasi_id')->orderBy('nama')->get(),
             'isEdit' => true,
         ]);
     }
@@ -123,12 +132,16 @@ class UserController extends Controller
 
         $data = $request->validated();
 
+        $caborIds = isset($data['cabor_ids']) && is_array($data['cabor_ids'])
+            ? array_map('intval', $data['cabor_ids'])
+            : (! empty($data['cabor_id']) ? [(int) $data['cabor_id']] : []);
+
         $user->fill([
             'name' => $data['name'],
             'email' => $data['email'],
             'klub_id' => $data['klub_id'] ?? null,
             'organisasi_id' => $data['organisasi_id'] ?? null,
-            'cabor_id' => $data['cabor_id'] ?? null,
+            'cabor_id' => $caborIds[0] ?? ($data['cabor_id'] ?? null),
         ]);
 
         if (! empty($data['password'])) {
@@ -137,6 +150,7 @@ class UserController extends Controller
 
         $user->save();
         $user->syncRoles($data['roles']);
+        $user->cabors()->sync($caborIds);
 
         return redirect()->route('users.index')->with('success', 'User berhasil diperbarui.');
     }
@@ -145,17 +159,27 @@ class UserController extends Controller
     {
         $this->authorize('view', $user);
 
-        $user->load(['roles', 'klub', 'organisasi', 'cabor']);
+        $user->load(['roles', 'klub', 'organisasi', 'cabor', 'cabors']);
 
         return Inertia::render('Users/Form', [
             'user' => (new UserResource($user))->resolve(),
-            'roles' => Role::query()->pluck('name')->values()->all(),
+            'roles' => $this->getOfficialRoles(),
             'klubs' => Klub::query()->select('id', 'nama')->orderBy('nama')->get(),
             'organisasis' => Organisasi::query()->select('id', 'nama')->orderBy('nama')->get(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'organisasi_id')->orderBy('nama')->get(),
+            'cabors' => Cabor::query()->select('id', 'nama', 'kategori', 'organisasi_id')->orderBy('nama')->get(),
             'isEdit' => false,
             'isShow' => true,
         ]);
+    }
+
+    private function getOfficialRoles(): array
+    {
+        return [
+            ['name' => 'super_admin', 'label' => 'Super Admin', 'desc' => 'Akses penuh seluruh sistem'],
+            ['name' => 'verifikator', 'label' => 'Verifikator Dispora', 'desc' => 'Verifikasi & validasi data'],
+            ['name' => 'pimpinan', 'label' => 'Pimpinan', 'desc' => 'Monitoring eksekutif (read-only, dashboard, laporan)'],
+            ['name' => 'pengurus_cabor', 'label' => 'Pengurus Cabor (Pengkot)', 'desc' => 'Mengelola cabang olahraga tertentu'],
+        ];
     }
 
     public function destroy(Request $request, User $user): RedirectResponse

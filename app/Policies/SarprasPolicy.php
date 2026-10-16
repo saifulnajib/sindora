@@ -19,6 +19,10 @@ class SarprasPolicy
 
     public function view(User $user, Sarpras $sarpras): bool
     {
+        if ($user->isPengkot()) {
+            return $sarpras->cabor_id !== null && $user->managesCabor((int) $sarpras->cabor_id);
+        }
+
         return $user->can('sarpras.view');
     }
 
@@ -40,6 +44,10 @@ class SarprasPolicy
             }
         }
 
+        if ($user->isPengkot()) {
+            return $sarpras->cabor_id !== null && $user->managesCabor((int) $sarpras->cabor_id);
+        }
+
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
             // sarpras may be linked via klub_id; if null, allow? enforce strict: must match klub_id
             if ($sarpras->klub_id !== null) {
@@ -57,6 +65,10 @@ class SarprasPolicy
     {
         if (! $user->can('sarpras.manage')) {
             return false;
+        }
+
+        if ($user->isPengkot()) {
+            return $sarpras->cabor_id !== null && $user->managesCabor((int) $sarpras->cabor_id);
         }
 
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
@@ -81,6 +93,10 @@ class SarprasPolicy
             return false;
         }
 
+        if ($user->isPengkot()) {
+            return $sarpras->cabor_id !== null && $user->managesCabor((int) $sarpras->cabor_id);
+        }
+
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
             if ($sarpras->klub_id !== null) {
                 return (int) $user->klub_id === (int) $sarpras->klub_id;
@@ -99,6 +115,10 @@ class SarprasPolicy
     public function forceDelete(User $user, Sarpras $sarpras): bool
     {
         if (! $user->can('sarpras.manage')) {
+            return false;
+        }
+
+        if ($user->isPengkot()) {
             return false;
         }
 

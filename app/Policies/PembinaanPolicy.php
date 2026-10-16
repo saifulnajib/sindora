@@ -20,6 +20,10 @@ class PembinaanPolicy
 
     public function view(User $user, Pembinaan $pembinaan): bool
     {
+        if ($user->isPengkot()) {
+            return $pembinaan->cabor_id !== null && $user->managesCabor((int) $pembinaan->cabor_id);
+        }
+
         return $user->can('pembinaan.view') || $user->can('pembinaan.manage');
     }
 
@@ -47,6 +51,10 @@ class PembinaanPolicy
             if (! $user->hasRole('super_admin') && ! $user->hasRole('verifikator') && ! $user->can('verifikasi.manage')) {
                 return false;
             }
+        }
+
+        if ($user->isPengkot()) {
+            return $pembinaan->cabor_id !== null && $user->managesCabor((int) $pembinaan->cabor_id);
         }
 
         if ($user->hasRole('operator_organisasi') && ($user->organisasi_id !== null || $user->cabor_id !== null)) {
@@ -82,6 +90,10 @@ class PembinaanPolicy
             return false;
         }
 
+        if ($user->isPengkot()) {
+            return $pembinaan->cabor_id !== null && $user->managesCabor((int) $pembinaan->cabor_id);
+        }
+
         if ($user->hasRole('operator_organisasi') && ($user->organisasi_id !== null || $user->cabor_id !== null)) {
             $orgMatch = $user->organisasi_id !== null && $pembinaan->organisasi_id !== null
                 ? (int) $user->organisasi_id === (int) $pembinaan->organisasi_id
@@ -108,11 +120,23 @@ class PembinaanPolicy
             return false;
         }
 
-        return $user->can('pembinaan.manage');
+        if (! $user->can('pembinaan.manage')) {
+            return false;
+        }
+
+        if ($user->isPengkot()) {
+            return $pembinaan->cabor_id !== null && $user->managesCabor((int) $pembinaan->cabor_id);
+        }
+
+        return true;
     }
 
     public function forceDelete(User $user, Pembinaan $pembinaan): bool
     {
+        if ($user->isPengkot()) {
+            return false;
+        }
+
         if ($user->hasRole('operator_klub')) {
             return false;
         }

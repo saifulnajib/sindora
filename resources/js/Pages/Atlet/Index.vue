@@ -125,7 +125,30 @@ function getVerificationLabel(status) {
                                     </td>
                                     <td class="px-4 py-3 font-medium dark:text-gray-100">{{ a.nama }}</td>
                                     <td class="px-4 py-3 font-mono text-xs" :title="a.can_view_sensitive ? 'full' : 'masked'">{{ a.nik }}</td>
-                                    <td class="px-4 py-3">{{ a.klub?.nama ?? '—' }}</td> <td class="px-4 py-3">{{ a.cabor?.nama ?? '—' }}</td> <td class="px-4 py-3"><span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">{{ a.status_pembinaan ?? '—' }}</span></td>
+                                    <td class="px-4 py-3">
+                                        <div v-if="a.cabors && a.cabors.length" class="space-y-0.5">
+                                            <div v-for="(c, cIdx) in a.cabors" :key="cIdx" class="text-xs text-gray-700 dark:text-gray-300 truncate max-w-[140px]">
+                                                <span v-if="c.klub_nama" :title="c.klub_nama">{{ c.klub_nama }}</span>
+                                                <span v-else class="text-gray-400 italic">Tanpa klub</span>
+                                            </div>
+                                        </div>
+                                        <span v-else>{{ a.klub?.nama ?? '—' }}</span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div v-if="a.cabors && a.cabors.length" class="flex flex-wrap gap-1">
+                                            <span
+                                                v-for="(c, cIdx) in a.cabors"
+                                                :key="cIdx"
+                                                class="inline-flex items-center rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-800 ring-1 ring-inset ring-red-200 dark:bg-red-950/60 dark:text-red-300 dark:ring-red-900/60"
+                                                :title="c.kelas_tanding ? `Kelas: ${c.kelas_tanding}` : ''"
+                                            >
+                                                {{ c.cabor_nama }}
+                                                <span v-if="c.kelas_tanding" class="ml-1 text-[10px] text-red-600 dark:text-red-400 font-normal">({{ c.kelas_tanding }})</span>
+                                            </span>
+                                        </div>
+                                        <span v-else>{{ a.cabor?.nama ?? '—' }}</span>
+                                    </td>
+                                    <td class="px-4 py-3"><span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">{{ a.status_pembinaan ?? '—' }}</span></td>
                                     <td class="px-4 py-3">
                                         <span :class="['rounded-full px-2 py-0.5 text-xs font-medium dark:text-gray-100', a.verification_badge ?? getVerificationBadge(a.verification_status)]">
                                             {{ a.verification_label ?? getVerificationLabel(a.verification_status) }}

@@ -9,7 +9,7 @@ class StoreCaborRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('cabor.manage') ?? false;
+        return $this->user() ? $this->user()->can('create', \App\Models\Cabor::class) : false;
     }
 
     public function rules(): array
@@ -20,6 +20,13 @@ class StoreCaborRequest extends FormRequest
             'kode' => ['nullable', 'string', 'max:20', 'unique:cabors,kode'],
             'kategori' => ['nullable', 'string', 'max:50'],
             'deskripsi' => ['nullable', 'string', 'max:2000'],
+            'logo' => ['nullable', 'file', 'image', 'mimes:png,jpg,jpeg,webp,svg', 'max:5120'],
+            'sk_nomor' => ['nullable', 'string', 'max:255'],
+            'sk_tgl_mulai' => ['nullable', 'date'],
+            'sk_tgl_selesai' => ['nullable', 'date'],
+            'sk_file' => ['nullable', 'file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:10240'],
+            'nama_ketua' => ['nullable', 'string', 'max:255'],
+            'kontak_pengurus' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

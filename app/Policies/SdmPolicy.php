@@ -19,6 +19,10 @@ class SdmPolicy
 
     public function view(User $user, Sdm $sdm): bool
     {
+        if ($user->isPengkot()) {
+            return $sdm->cabor_id !== null && $user->managesCabor((int) $sdm->cabor_id);
+        }
+
         return $user->can('sdm.view');
     }
 
@@ -40,6 +44,10 @@ class SdmPolicy
             }
         }
 
+        if ($user->isPengkot()) {
+            return $sdm->cabor_id !== null && $user->managesCabor((int) $sdm->cabor_id);
+        }
+
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
             return (int) $user->klub_id === (int) $sdm->klub_id;
         }
@@ -55,6 +63,10 @@ class SdmPolicy
     {
         if (! $user->can('sdm.manage')) {
             return false;
+        }
+
+        if ($user->isPengkot()) {
+            return $sdm->cabor_id !== null && $user->managesCabor((int) $sdm->cabor_id);
         }
 
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
@@ -74,6 +86,10 @@ class SdmPolicy
             return false;
         }
 
+        if ($user->isPengkot()) {
+            return $sdm->cabor_id !== null && $user->managesCabor((int) $sdm->cabor_id);
+        }
+
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
             return (int) $user->klub_id === (int) $sdm->klub_id;
         }
@@ -91,6 +107,10 @@ class SdmPolicy
             return false;
         }
 
+        if ($user->isPengkot()) {
+            return false;
+        }
+
         if ($user->hasRole('operator_klub')) {
             return false;
         }
@@ -105,6 +125,10 @@ class SdmPolicy
     public function viewSensitive(User $user, Sdm $sdm): bool
     {
         if ($user->hasRole('super_admin')) {
+            return true;
+        }
+
+        if ($user->isPengkot() && $sdm->cabor_id !== null && $user->managesCabor((int) $sdm->cabor_id)) {
             return true;
         }
 

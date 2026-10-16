@@ -17,6 +17,24 @@ const props = defineProps({
     isShow: Boolean,
 });
 
+const initialCabors = (props.atlet?.cabors && props.atlet.cabors.length > 0)
+    ? props.atlet.cabors.map(c => ({
+        cabor_id: c.cabor_id ?? '',
+        klub_id: c.klub_id ?? '',
+        pelatih_id: c.pelatih_id ?? '',
+        kelas_tanding: c.kelas_tanding ?? '',
+        status_pembinaan: c.status_pembinaan ?? 'daerah',
+    }))
+    : [
+        {
+            cabor_id: props.atlet?.cabor_id ?? '',
+            klub_id: props.atlet?.klub_id ?? '',
+            pelatih_id: props.atlet?.pelatih_id ?? '',
+            kelas_tanding: props.atlet?.kelas_tanding ?? '',
+            status_pembinaan: props.atlet?.status_pembinaan ?? 'daerah',
+        }
+    ];
+
 const form = useForm({
     nama: props.atlet?.nama ?? '',
     nik: props.atlet?.nik ?? '',
@@ -26,14 +44,11 @@ const form = useForm({
     alamat: props.atlet?.alamat ?? '',
     no_hp: props.atlet?.no_hp ?? '',
     email: props.atlet?.email ?? '',
-    klub_id: props.atlet?.klub_id ?? '',
-    cabor_id: props.atlet?.cabor_id ?? '',
-    pelatih_id: props.atlet?.pelatih_id ?? '',
     kelurahan_id: props.atlet?.kelurahan_id ?? '',
-    kelas_tanding: props.atlet?.kelas_tanding ?? '',
     status_pembinaan: props.atlet?.status_pembinaan ?? 'daerah',
     berat_badan: props.atlet?.berat_badan ?? '',
     tinggi_badan: props.atlet?.tinggi_badan ?? '',
+    cabors: initialCabors,
     foto: null,
 });
 
@@ -43,6 +58,32 @@ function onFotoChange(e) {
     const f = e.target.files[0];
     form.foto = f || null;
     if (f) fotoPreview.value = URL.createObjectURL(f);
+}
+
+function addCabor() {
+    form.cabors.push({
+        cabor_id: '',
+        klub_id: '',
+        pelatih_id: '',
+        kelas_tanding: '',
+        status_pembinaan: 'daerah',
+    });
+}
+
+function removeCabor(index) {
+    if (form.cabors.length > 1) {
+        form.cabors.splice(index, 1);
+    }
+}
+
+function getFilteredKlubs(caborId) {
+    if (!caborId) return props.klubs;
+    return props.klubs.filter(k => !k.cabor_id || k.cabor_id == caborId);
+}
+
+function getFilteredPelatihs(caborId) {
+    if (!caborId) return props.pelatihs;
+    return props.pelatihs.filter(p => !p.cabor_id || p.cabor_id == caborId);
 }
 
 function submit() {
@@ -95,7 +136,7 @@ function submit() {
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="jenis_kelamin" value="Jenis Kelamin" />
-                                <select id="jenis_kelamin" v-model="form.jenis_kelamin" :disabled="isShow" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-600 text-sm">
+                                <select id="jenis_kelamin" v-model="form.jenis_kelamin" :disabled="isShow" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-red-600 focus:ring-red-600 text-sm">
                                     <option value="">— Pilih —</option>
                                     <option value="L">Laki-laki</option>
                                     <option value="P">Perempuan</option>
@@ -103,16 +144,21 @@ function submit() {
                                 <InputError :message="form.errors.jenis_kelamin" class="mt-2" />
                             </div>
                             <div>
-                                <InputLabel for="kelas_tanding" value="Kelas Tanding" />
-                                <TextInput id="kelas_tanding" v-model="form.kelas_tanding" class="mt-1 block w-full" :disabled="isShow" placeholder="mis. 60kg / -60kg" />
-                                <InputError :message="form.errors.kelas_tanding" class="mt-2" />
+                                <InputLabel for="kelurahan_id" value="Kelurahan (domisili)" />
+                                <select id="kelurahan_id" v-model="form.kelurahan_id" :disabled="isShow" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-red-600 focus:ring-red-600 text-sm">
+                                    <option value="">— Pilih Kelurahan —</option>
+                                    <option v-for="k in kelurahans" :key="k.id" :value="k.id">{{ k.nama }}</option>
+                                </select>
+                                <InputError :message="form.errors.kelurahan_id" class="mt-2" />
                             </div>
                         </div>
+
                         <div>
                             <InputLabel for="alamat" value="Alamat" />
-                            <textarea id="alamat" v-model="form.alamat" :disabled="isShow" rows="2" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-600 text-sm"></textarea>
+                            <textarea id="alamat" v-model="form.alamat" :disabled="isShow" rows="2" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-red-600 focus:ring-red-600 text-sm"></textarea>
                             <InputError :message="form.errors.alamat" class="mt-2" />
                         </div>
+
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="no_hp" value="No HP" />
@@ -125,46 +171,11 @@ function submit() {
                                 <InputError :message="form.errors.email" class="mt-2" />
                             </div>
                         </div>
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div>
-                                <InputLabel for="cabor_id" value="Cabor *" />
-                                <select id="cabor_id" v-model="form.cabor_id" :disabled="isShow" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-600 text-sm">
-                                    <option value="">— Pilih Cabor —</option>
-                                    <option v-for="c in cabors" :key="c.id" :value="c.id">{{ c.nama }}</option>
-                                </select>
-                                <InputError :message="form.errors.cabor_id" class="mt-2" />
-                            </div>
-                            <div>
-                                <InputLabel for="klub_id" value="Klub" />
-                                <select id="klub_id" v-model="form.klub_id" :disabled="isShow" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-600 text-sm">
-                                    <option value="">— Tanpa Klub —</option>
-                                    <option v-for="k in klubs" :key="k.id" :value="k.id">{{ k.nama }}</option>
-                                </select>
-                                <InputError :message="form.errors.klub_id" class="mt-2" />
-                            </div>
-                        </div>
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <div>
-                                <InputLabel for="pelatih_id" value="Pelatih (SDM)" />
-                                <select id="pelatih_id" v-model="form.pelatih_id" :disabled="isShow" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-600 text-sm">
-                                    <option value="">— Tanpa Pelatih —</option>
-                                    <option v-for="p in pelatihs" :key="p.id" :value="p.id">{{ p.nama }}</option>
-                                </select>
-                                <InputError :message="form.errors.pelatih_id" class="mt-2" />
-                            </div>
-                            <div>
-                                <InputLabel for="kelurahan_id" value="Kelurahan (domisili)" />
-                                <select id="kelurahan_id" v-model="form.kelurahan_id" :disabled="isShow" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-600 text-sm">
-                                    <option value="">— Pilih Kelurahan —</option>
-                                    <option v-for="k in kelurahans" :key="k.id" :value="k.id">{{ k.nama }}</option>
-                                </select>
-                                <InputError :message="form.errors.kelurahan_id" class="mt-2" />
-                            </div>
-                        </div>
+
                         <div class="grid gap-4 sm:grid-cols-3">
                             <div>
                                 <InputLabel for="status_pembinaan" value="Status Pembinaan" />
-                                <select id="status_pembinaan" v-model="form.status_pembinaan" :disabled="isShow" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-600 text-sm">
+                                <select id="status_pembinaan" v-model="form.status_pembinaan" :disabled="isShow" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-red-600 focus:ring-red-600 text-sm">
                                     <option value="daerah">Daerah</option>
                                     <option value="provinsi">Provinsi</option>
                                     <option value="nasional">Nasional</option>
@@ -180,6 +191,134 @@ function submit() {
                                 <InputLabel for="tinggi_badan" value="Tinggi (cm)" />
                                 <TextInput id="tinggi_badan" type="number" step="0.01" v-model="form.tinggi_badan" class="mt-1 block w-full" :disabled="isShow" />
                                 <InputError :message="form.errors.tinggi_badan" class="mt-2" />
+                            </div>
+                        </div>
+
+                        <!-- SEKSI CABANG OLAHRAGA (MULTI-CABOR) -->
+                        <div class="rounded-xl border border-red-200/90 bg-red-50/40 p-4 dark:border-red-900/50 dark:bg-red-950/20">
+                            <div class="flex items-center justify-between pb-3 border-b border-red-200/60 dark:border-red-900/40">
+                                <div>
+                                    <h3 class="text-sm font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                                        <span>🏅</span> Cabang Olahraga yang Diikuti *
+                                    </h3>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                        Atlet dapat mengikuti lebih dari satu cabor dengan klub, pelatih, dan kelas tanding masing-masing.
+                                    </p>
+                                </div>
+                                <button
+                                    v-if="!isShow"
+                                    type="button"
+                                    @click="addCabor"
+                                    class="inline-flex items-center gap-1 rounded-lg bg-red-800 hover:bg-red-900 px-3 py-1.5 text-xs font-semibold text-white shadow-xs transition"
+                                >
+                                    <span>+ Tambah Cabor</span>
+                                </button>
+                            </div>
+
+                            <InputError :message="form.errors.cabors" class="mt-2" />
+
+                            <div class="mt-4 space-y-4">
+                                <div
+                                    v-for="(item, idx) in form.cabors"
+                                    :key="idx"
+                                    class="rounded-lg border border-gray-200 bg-white p-4 shadow-2xs dark:border-gray-700 dark:bg-gray-800"
+                                >
+                                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-100 dark:border-gray-700">
+                                        <span class="inline-flex items-center gap-2 text-xs font-bold text-red-900 dark:text-red-300">
+                                            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-red-100 text-red-800 dark:bg-red-900/60 dark:text-red-200 text-[11px] font-black">
+                                                {{ idx + 1 }}
+                                            </span>
+                                            Cabang Olahraga #{{ idx + 1 }}
+                                        </span>
+                                        <button
+                                            v-if="!isShow && form.cabors.length > 1"
+                                            type="button"
+                                            @click="removeCabor(idx)"
+                                            class="inline-flex items-center gap-1 text-xs text-red-600 hover:text-red-800 dark:text-red-400 font-semibold transition"
+                                        >
+                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Hapus Cabor
+                                        </button>
+                                    </div>
+
+                                    <div class="grid gap-4 sm:grid-cols-2">
+                                        <div>
+                                            <InputLabel :for="'cabor_' + idx" value="Pilih Cabor *" />
+                                            <select
+                                                :id="'cabor_' + idx"
+                                                v-model="item.cabor_id"
+                                                :disabled="isShow"
+                                                required
+                                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-red-600 focus:ring-red-600 text-sm"
+                                            >
+                                                <option value="">— Pilih Cabor —</option>
+                                                <option
+                                                    v-for="c in cabors"
+                                                    :key="c.id"
+                                                    :value="c.id"
+                                                    :disabled="form.cabors.some((other, oIdx) => oIdx !== idx && other.cabor_id == c.id)"
+                                                >
+                                                    {{ c.nama }}
+                                                </option>
+                                            </select>
+                                            <InputError :message="form.errors[`cabors.${idx}.cabor_id`]" class="mt-1" />
+                                        </div>
+
+                                        <div>
+                                            <InputLabel :for="'klub_' + idx" value="Klub Naungan" />
+                                            <select
+                                                :id="'klub_' + idx"
+                                                v-model="item.klub_id"
+                                                :disabled="isShow"
+                                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-red-600 focus:ring-red-600 text-sm"
+                                            >
+                                                <option value="">— Tanpa Klub —</option>
+                                                <option
+                                                    v-for="k in getFilteredKlubs(item.cabor_id)"
+                                                    :key="k.id"
+                                                    :value="k.id"
+                                                >
+                                                    {{ k.nama }}
+                                                </option>
+                                            </select>
+                                            <InputError :message="form.errors[`cabors.${idx}.klub_id`]" class="mt-1" />
+                                        </div>
+
+                                        <div>
+                                            <InputLabel :for="'pelatih_' + idx" value="Pelatih (SDM)" />
+                                            <select
+                                                :id="'pelatih_' + idx"
+                                                v-model="item.pelatih_id"
+                                                :disabled="isShow"
+                                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-red-600 focus:ring-red-600 text-sm"
+                                            >
+                                                <option value="">— Tanpa Pelatih —</option>
+                                                <option
+                                                    v-for="p in getFilteredPelatihs(item.cabor_id)"
+                                                    :key="p.id"
+                                                    :value="p.id"
+                                                >
+                                                    {{ p.nama }}
+                                                </option>
+                                            </select>
+                                            <InputError :message="form.errors[`cabors.${idx}.pelatih_id`]" class="mt-1" />
+                                        </div>
+
+                                        <div>
+                                            <InputLabel :for="'kelas_tanding_' + idx" value="Kelas / Nomor Tanding" />
+                                            <TextInput
+                                                :id="'kelas_tanding_' + idx"
+                                                v-model="item.kelas_tanding"
+                                                :disabled="isShow"
+                                                placeholder="mis. 60kg, Gaya Bebas 50m"
+                                                class="mt-1 block w-full"
+                                            />
+                                            <InputError :message="form.errors[`cabors.${idx}.kelas_tanding`]" class="mt-1" />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div>

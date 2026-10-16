@@ -26,6 +26,16 @@ class UserResource extends JsonResource
             'organisasi_id' => $this->organisasi_id,
             'cabor' => $this->whenLoaded('cabor', fn () => $this->cabor ? ['id' => $this->cabor->id, 'nama' => $this->cabor->nama] : null),
             'cabor_id' => $this->cabor_id,
+            'cabor_ids' => $this->getAssignedCaborIds(),
+            'assigned_cabors' => $this->whenLoaded('cabors', function () {
+                if ($this->cabors->isNotEmpty()) {
+                    return $this->cabors->map(fn ($c) => ['id' => $c->id, 'nama' => $c->nama, 'kategori' => $c->kategori]);
+                }
+                if ($this->relationLoaded('cabor') && $this->cabor) {
+                    return [['id' => $this->cabor->id, 'nama' => $this->cabor->nama, 'kategori' => $this->cabor->kategori]];
+                }
+                return [];
+            }),
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
         ];

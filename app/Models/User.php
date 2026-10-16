@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -65,5 +66,45 @@ class User extends Authenticatable
     public function cabor(): BelongsTo
     {
         return $this->belongsTo(Cabor::class);
+    }
+
+    public function cabors(): BelongsToMany
+    {
+        return $this->belongsToMany(Cabor::class, 'cabor_user')->withTimestamps();
+    }
+
+    /**
+     * Check if user is Pengkot (Pengurus Cabor).
+     */
+    public function isPengkot(): bool
+    {
+        return $this->hasRole(['pengurus_cabor', 'pengkot', 'operator_organisasi', 'operator_klub']);
+    }
+
+    /**
+     * Get all Cabor IDs assigned to this Pengkot user.
+     *
+     * @return array<int>
+     */
+    public function getAssignedCaborIds(): array
+    {
+        $ids = $this->cabors()->pluck('cabors.id')->all();
+        if ($this->cabor_id && ! in_array((int) $this->cabor_id, $ids, true)) {
+            $ids[] = (int) $this->cabor_id;
+        }
+
+        return array_values(array_unique(array_filter(array_map('intval', $ids))));
+    }
+
+    /**
+     * Check if user has permission to manage a specific cabor.
+     */
+    public function managesCabor(int $caborId): bool
+    {
+        if ($this->hasRole(['super_admin', 'verifikator'])) {
+            return true;
+        }
+
+        return in_array($caborId, $this->getAssignedCaborIds(), true);
     }
 }

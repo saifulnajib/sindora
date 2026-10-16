@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 const page = usePage();
@@ -11,6 +11,8 @@ const can = computed(() => page.props.auth?.can ?? {});
 const props = defineProps({
     widgets: { type: Object, default: () => ({}) },
     pendingVerifikasi: { type: Object, default: () => ({}) },
+    bidangOlahraga: { type: Array, default: () => [] },
+    activeBidang: { type: String, default: 'all' },
     trenMedali: { type: Array, default: () => [] },
     rasioPelatihAtlet: { type: Array, default: () => [] },
     distribusiKecamatan: { type: Array, default: () => [] },
@@ -18,6 +20,17 @@ const props = defineProps({
     caborUnggulan: { type: Array, default: () => [] },
     lisensi: { type: Object, default: () => ({ counts: {}, kritis: [], expired: [], peringatan: [], top_urgent: [] }) },
 });
+
+const activeBidang = computed(() => props.activeBidang || 'all');
+const bidangList = computed(() => props.bidangOlahraga || []);
+
+function filterBidang(key) {
+    router.get(
+        route('dashboard'),
+        key && key !== 'all' ? { bidang: key } : {},
+        { preserveState: true, preserveScroll: true }
+    );
+}
 
 const w = computed(() => props.widgets || {});
 const pending = computed(() => props.pendingVerifikasi || {});
@@ -46,6 +59,7 @@ function toggleSortUnggulan() {
 }
 
 const widgetCards = computed(() => [
+    { label: 'Cabor', value: w.value.cabor ?? 0, href: activeBidang.value !== 'all' ? route('cabors.index', { kategori: activeBidang.value }) : route('cabors.index'), color: 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-200', icon: 'Cb' },
     { label: 'Klub', value: w.value.klub ?? 0, href: route('klubs.index'), color: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200', icon: 'K' },
     { label: 'Atlet', value: w.value.atlet ?? 0, href: route('atlets.index'), color: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200', icon: 'A' },
     { label: 'Pelatih', value: w.value.pelatih ?? 0, href: route('sdms.index'), color: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-200', icon: 'P' },
@@ -116,10 +130,222 @@ const pendingTotal = computed(() => pending.value.total ?? 0);
                     </div>
                 </div>
 
+                <!-- Kategori Bidang Olahraga (KONI, KORMI, DISABILITAS) -->
+                <div class="space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100">Kategori Bidang Olahraga</h3>
+                                <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-800 dark:bg-red-950/50 dark:text-red-300">
+                                    3 Bidang Utama
+                                </span>
+                            </div>
+                            <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                                Pembagian cabang olahraga berdasarkan bidang: KONI (Prestasi), KORMI (Masyarakat / Rekreasi), dan DISABILITAS (NPCI).
+                            </p>
+                        </div>
+
+                        <!-- Tab Filter Switcher -->
+                        <div class="inline-flex rounded-xl bg-gray-100 p-1 dark:bg-gray-800/80 ring-1 ring-gray-200 dark:ring-gray-700">
+                            <button
+                                type="button"
+                                @click="filterBidang('all')"
+                                :class="[
+                                    'rounded-lg px-3 py-1.5 text-xs font-semibold transition-all',
+                                    activeBidang === 'all'
+                                        ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
+                                        : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                                ]"
+                            >
+                                Semua Bidang
+                            </button>
+                            <button
+                                type="button"
+                                @click="filterBidang('koni')"
+                                :class="[
+                                    'rounded-lg px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5',
+                                    activeBidang === 'koni'
+                                        ? 'bg-red-800 text-white shadow-sm dark:bg-red-700'
+                                        : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                                ]"
+                            >
+                                <span class="h-2 w-2 rounded-full bg-red-400"></span>
+                                KONI
+                            </button>
+                            <button
+                                type="button"
+                                @click="filterBidang('kormi')"
+                                :class="[
+                                    'rounded-lg px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5',
+                                    activeBidang === 'kormi'
+                                        ? 'bg-amber-600 text-white shadow-sm dark:bg-amber-700'
+                                        : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                                ]"
+                            >
+                                <span class="h-2 w-2 rounded-full bg-amber-400"></span>
+                                KORMI
+                            </button>
+                            <button
+                                type="button"
+                                @click="filterBidang('disabilitas')"
+                                :class="[
+                                    'rounded-lg px-3 py-1.5 text-xs font-semibold transition-all flex items-center gap-1.5',
+                                    activeBidang === 'disabilitas'
+                                        ? 'bg-blue-600 text-white shadow-sm dark:bg-blue-700'
+                                        : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
+                                ]"
+                            >
+                                <span class="h-2 w-2 rounded-full bg-blue-400"></span>
+                                DISABILITAS
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 3 Cards Grid -->
+                    <div class="grid gap-4 md:grid-cols-3">
+                        <div
+                            v-for="b in bidangList"
+                            :key="b.key"
+                            :class="[
+                                'relative flex flex-col justify-between overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition hover:shadow-md dark:bg-gray-800',
+                                activeBidang === b.key
+                                    ? 'border-2 border-red-600 ring-2 ring-red-500/20 dark:border-red-500'
+                                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                            ]"
+                        >
+                            <!-- Accent top bar -->
+                            <div
+                                :class="[
+                                    'absolute top-0 left-0 right-0 h-1.5',
+                                    b.key === 'koni' ? 'bg-gradient-to-r from-red-600 to-rose-700' : (b.key === 'kormi' ? 'bg-gradient-to-r from-amber-500 to-yellow-600' : 'bg-gradient-to-r from-blue-600 to-indigo-700')
+                                ]"
+                            ></div>
+
+                            <div>
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            :class="[
+                                                'inline-flex h-8 w-8 items-center justify-center rounded-lg text-xs font-extrabold',
+                                                b.key === 'koni'
+                                                    ? 'bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300'
+                                                    : (b.key === 'kormi'
+                                                        ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
+                                                        : 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300')
+                                            ]"
+                                        >
+                                            {{ b.nama.slice(0, 2) }}
+                                        </span>
+                                        <div>
+                                            <h4 class="text-base font-extrabold tracking-tight text-gray-900 dark:text-white">
+                                                {{ b.nama }}
+                                            </h4>
+                                            <p class="text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                                                {{ b.subnama }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span
+                                        :class="[
+                                            'rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider',
+                                            b.key === 'koni'
+                                                ? 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300'
+                                                : (b.key === 'kormi'
+                                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                                                    : 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300')
+                                        ]"
+                                    >
+                                        {{ b.badge }}
+                                    </span>
+                                </div>
+
+                                <p class="mt-2.5 text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
+                                    {{ b.deskripsi }}
+                                </p>
+
+                                <!-- Stats metrics inside card -->
+                                <div class="mt-4 grid grid-cols-3 gap-2 text-center">
+                                    <div class="rounded-xl bg-gray-50 p-2 dark:bg-gray-700/40">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Cabor</p>
+                                        <p class="text-lg font-extrabold text-gray-900 dark:text-white">{{ b.cabor_count }}</p>
+                                    </div>
+                                    <div class="rounded-xl bg-gray-50 p-2 dark:bg-gray-700/40">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Atlet</p>
+                                        <p class="text-lg font-extrabold text-gray-900 dark:text-white">{{ b.atlet_count }}</p>
+                                    </div>
+                                    <div class="rounded-xl bg-gray-50 p-2 dark:bg-gray-700/40">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Klub</p>
+                                        <p class="text-lg font-extrabold text-gray-900 dark:text-white">{{ b.klub_count }}</p>
+                                    </div>
+                                    <div class="rounded-xl bg-gray-50 p-2 dark:bg-gray-700/40">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Pelatih</p>
+                                        <p class="text-lg font-extrabold text-gray-900 dark:text-white">{{ b.pelatih_count }}</p>
+                                    </div>
+                                    <div class="rounded-xl bg-gray-50 p-2 dark:bg-gray-700/40">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Prestasi</p>
+                                        <p class="text-lg font-extrabold text-gray-900 dark:text-white">{{ b.prestasi_count }}</p>
+                                    </div>
+                                    <div class="rounded-xl bg-gray-50 p-2 dark:bg-gray-700/40">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Sarpras</p>
+                                        <p class="text-lg font-extrabold text-gray-900 dark:text-white">{{ b.sarpras_count ?? 0 }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card action footer -->
+                            <div class="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 dark:border-gray-700">
+                                <button
+                                    type="button"
+                                    @click="filterBidang(activeBidang === b.key ? 'all' : b.key)"
+                                    :class="[
+                                        'rounded-lg px-2.5 py-1 text-xs font-semibold transition',
+                                        activeBidang === b.key
+                                            ? 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+                                    ]"
+                                >
+                                    {{ activeBidang === b.key ? '✕ Reset Filter' : 'Filter Dashboard' }}
+                                </button>
+                                <Link
+                                    :href="route('cabors.index', { kategori: b.key })"
+                                    class="text-xs font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 inline-flex items-center gap-1"
+                                >
+                                    Cabor {{ b.nama }} →
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Filter Alert Notice -->
+                <div
+                    v-if="activeBidang !== 'all'"
+                    class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-900 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200"
+                >
+                    <div class="flex items-center gap-2.5">
+                        <span class="flex h-3 w-3 relative">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+                        </span>
+                        <span>
+                            Menampilkan data khusus <strong>Bidang {{ activeBidang.toUpperCase() }}</strong>. Semua ringkasan widget, tren prestasi, dan analitik di bawah disesuaikan dengan cabor {{ activeBidang.toUpperCase() }}.
+                        </span>
+                    </div>
+                    <button
+                        type="button"
+                        @click="filterBidang('all')"
+                        class="rounded-lg bg-white px-3 py-1 text-xs font-bold text-red-700 shadow-sm ring-1 ring-red-200 hover:bg-red-100 dark:bg-gray-800 dark:text-red-200 dark:ring-red-800 dark:hover:bg-gray-700"
+                    >
+                        ✕ Tampilkan Semua Bidang
+                    </button>
+                </div>
+
                 <!-- 6.1 Widgets Ringkasan -->
                 <div>
                     <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Ringkasan (terverifikasi)</h3>
+                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                            Ringkasan <span v-if="activeBidang !== 'all'">(Bidang {{ activeBidang.toUpperCase() }})</span> (terverifikasi)
+                        </h3>
                         <span class="text-xs text-gray-500 dark:text-gray-400">Cache 60 dtk · pending <span class="font-semibold text-amber-600">{{ pendingTotal }}</span></span>
                     </div>
                     <div class="mt-3 grid gap-3 grid-cols-2 md:grid-cols-4">

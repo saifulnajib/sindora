@@ -84,10 +84,15 @@ class LandingController extends Controller
 
         // 3. Tren Medali Tahunan
         $trenMedali = Cache::remember('landing.tren_medali', 60, function () {
+            $isSqlite = DB::connection()->getDriverName() === 'sqlite';
+            $yearExpr = $isSqlite
+                ? "strftime('%Y', COALESCE(tanggal, created_at))"
+                : "YEAR(COALESCE(tanggal, created_at))";
+
             $rows = Prestasi::terverifikasi()
                 ->whereNotNull('medali')
-                ->selectRaw('YEAR(COALESCE(tanggal, created_at)) as tahun, medali, COUNT(*) as cnt')
-                ->groupBy(DB::raw('YEAR(COALESCE(tanggal, created_at))'), 'medali')
+                ->selectRaw("{$yearExpr} as tahun, medali, COUNT(*) as cnt")
+                ->groupBy(DB::raw($yearExpr), 'medali')
                 ->orderBy('tahun')
                 ->get();
 
@@ -173,6 +178,8 @@ class LandingController extends Controller
         // 6. Daftar Atlet Unggulan / Terdaftar (Public-Safe, tanpa NIK/No HP)
         $atlets = Atlet::terverifikasi()
             ->with([
+                'atletCabors.cabor:id,nama,kode',
+                'atletCabors.klub:id,nama',
                 'cabor:id,nama,kode',
                 'klub:id,nama',
                 'kelurahan.kecamatan:id,nama',
@@ -182,18 +189,30 @@ class LandingController extends Controller
             ->orderBy('nama')
             ->take(12)
             ->get()
-            ->map(fn ($a) => [
-                'id' => $a->id,
-                'nama' => $a->nama,
-                'jenis_kelamin' => $a->jenis_kelamin,
-                'cabor_nama' => $a->cabor?->nama ?? '-',
-                'klub_nama' => $a->klub?->nama ?? '-',
-                'kecamatan_nama' => $a->kelurahan?->kecamatan?->nama ?? '-',
-                'kelas_tanding' => $a->kelas_tanding,
-                'status_pembinaan' => $a->status_pembinaan?->value ?? (string) $a->status_pembinaan,
-                'prestasi_count' => (int) $a->prestasi_count,
-                'foto_url' => $a->foto_path ? asset('storage/' . $a->foto_path) : null,
-            ]);
+            ->map(function ($a) {
+                $caborNama = $a->atletCabors->map(fn ($ac) => $ac->cabor?->nama)->filter()->unique()->join(', ');
+                if (empty($caborNama)) {
+                    $caborNama = $a->cabor?->nama ?? '-';
+                }
+
+                $klubNama = $a->atletCabors->map(fn ($ac) => $ac->klub?->nama)->filter()->unique()->join(', ');
+                if (empty($klubNama)) {
+                    $klubNama = $a->klub?->nama ?? '-';
+                }
+
+                return [
+                    'id' => $a->id,
+                    'nama' => $a->nama,
+                    'jenis_kelamin' => $a->jenis_kelamin,
+                    'cabor_nama' => $caborNama,
+                    'klub_nama' => $klubNama,
+                    'kecamatan_nama' => $a->kelurahan?->kecamatan?->nama ?? '-',
+                    'kelas_tanding' => $a->kelas_tanding,
+                    'status_pembinaan' => $a->status_pembinaan?->value ?? (string) $a->status_pembinaan,
+                    'prestasi_count' => (int) $a->prestasi_count,
+                    'foto_url' => $a->foto_path ? asset('storage/' . $a->foto_path) : null,
+                ];
+            });
 
         // 7. Daftar Pelatih Terverifikasi (Public-Safe)
         $pelatihs = Sdm::terverifikasi()

@@ -81,9 +81,14 @@ class HandleInertiaRequests extends Middleware
                 'can' => $request->user() ? [
                     'is_super_admin' => $request->user()->hasRole('super_admin'),
                     'is_verifikator' => $request->user()->hasRole('verifikator'),
-                    'is_operator_organisasi' => $request->user()->hasRole('operator_organisasi'),
-                    'is_operator_klub' => $request->user()->hasRole('operator_klub'),
-                    'is_viewer' => $request->user()->hasRole('viewer'),
+                    'is_pimpinan' => $request->user()->hasRole('pimpinan') || $request->user()->hasRole('viewer'),
+                    'is_pengkot' => $request->user()->isPengkot(),
+                    'is_pengurus_cabor' => $request->user()->isPengkot(),
+                    'assigned_cabors' => $request->user()->isPengkot() ? $request->user()->getAssignedCaborIds() : null,
+                    // Backward compat aliases
+                    'is_operator_organisasi' => $request->user()->hasRole(['operator_organisasi', 'pengurus_cabor', 'pengkot']),
+                    'is_operator_klub' => $request->user()->hasRole(['operator_klub', 'pengurus_cabor', 'pengkot']),
+                    'is_viewer' => $request->user()->hasRole(['pimpinan', 'viewer']),
                     // view shortcuts used by sidebar/nav
                     'view_wilayah' => $request->user()->can('wilayah.view'),
                     'view_organisasi' => $request->user()->can('organisasi.view'),

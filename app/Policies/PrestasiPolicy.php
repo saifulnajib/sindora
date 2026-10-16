@@ -19,6 +19,10 @@ class PrestasiPolicy
 
     public function view(User $user, Prestasi $prestasi): bool
     {
+        if ($user->isPengkot()) {
+            return $prestasi->cabor_id !== null && $user->managesCabor((int) $prestasi->cabor_id);
+        }
+
         return $user->can('prestasi.view') || $user->can('prestasi.manage');
     }
 
@@ -37,6 +41,10 @@ class PrestasiPolicy
             if (! $user->hasRole('super_admin') && ! $user->hasRole('verifikator') && ! $user->can('verifikasi.manage')) {
                 return false;
             }
+        }
+
+        if ($user->isPengkot()) {
+            return $prestasi->cabor_id !== null && $user->managesCabor((int) $prestasi->cabor_id);
         }
 
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
@@ -62,6 +70,10 @@ class PrestasiPolicy
             return false;
         }
 
+        if ($user->isPengkot()) {
+            return $prestasi->cabor_id !== null && $user->managesCabor((int) $prestasi->cabor_id);
+        }
+
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
             $prestasi->loadMissing('atlet');
             if ($prestasi->atlet) {
@@ -84,6 +96,10 @@ class PrestasiPolicy
             return false;
         }
 
+        if ($user->isPengkot()) {
+            return $prestasi->cabor_id !== null && $user->managesCabor((int) $prestasi->cabor_id);
+        }
+
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
             $prestasi->loadMissing('atlet');
             if ($prestasi->atlet) {
@@ -103,6 +119,10 @@ class PrestasiPolicy
     public function forceDelete(User $user, Prestasi $prestasi): bool
     {
         if (! $user->can('prestasi.manage')) {
+            return false;
+        }
+
+        if ($user->isPengkot()) {
             return false;
         }
 

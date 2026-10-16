@@ -32,34 +32,25 @@ class DemoUserSeeder extends Seeder
                 'extra' => [],
             ],
             [
-                'name' => 'Verifikator',
+                'name' => 'Verifikator Dispora',
                 'email' => 'verifikator@sindora.test',
                 'role' => 'verifikator',
                 'extra' => [],
             ],
             [
-                'name' => 'Operator Organisasi',
-                'email' => 'org@sindora.test',
-                'role' => 'operator_organisasi',
+                'name' => 'Pimpinan',
+                'email' => 'pimpinan@sindora.test',
+                'role' => 'pimpinan',
+                'extra' => [],
+            ],
+            [
+                'name' => 'Pengurus Cabor (Pengkot)',
+                'email' => 'pengkot@sindora.test',
+                'role' => 'pengurus_cabor',
                 'extra' => [
                     'organisasi_id' => $organisasi?->id,
                     'cabor_id' => $cabor?->id,
                 ],
-            ],
-            [
-                'name' => 'Operator Klub',
-                'email' => 'klub@sindora.test',
-                'role' => 'operator_klub',
-                'extra' => [
-                    'klub_id' => $klub?->id,
-                    'cabor_id' => $klub?->cabor_id ?? $cabor?->id,
-                ],
-            ],
-            [
-                'name' => 'Pimpinan Viewer',
-                'email' => 'pimpinan@sindora.test',
-                'role' => 'viewer',
-                'extra' => [],
             ],
         ];
 
@@ -85,6 +76,9 @@ class DemoUserSeeder extends Seeder
                 // Only save if fillable attributes exist in DB (klub_id etc)
                 try {
                     $user->save();
+                    if ($user->cabor_id) {
+                        $user->cabors()->syncWithoutDetaching([$user->cabor_id]);
+                    }
                 } catch (\Throwable $e) {
                     // Ignore if FK constraints fail when no master data yet
                     logger()->warning('DemoUserSeeder context link failed', [

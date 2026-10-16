@@ -9,6 +9,7 @@ use App\Traits\HasVerificationStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -40,6 +41,10 @@ class Atlet extends Model
         'verified_by',
     ];
 
+    protected $attributes = [
+        'status_pembinaan' => 'daerah',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -61,6 +66,18 @@ class Atlet extends Model
     public function cabor(): BelongsTo
     {
         return $this->belongsTo(Cabor::class);
+    }
+
+    public function atletCabors(): HasMany
+    {
+        return $this->hasMany(AtletCabor::class);
+    }
+
+    public function cabors(): BelongsToMany
+    {
+        return $this->belongsToMany(Cabor::class, 'atlet_cabor')
+            ->withPivot(['id', 'klub_id', 'pelatih_id', 'kelas_tanding', 'status_pembinaan'])
+            ->withTimestamps();
     }
 
     /**

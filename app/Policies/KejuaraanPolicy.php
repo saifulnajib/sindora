@@ -20,6 +20,10 @@ class KejuaraanPolicy
 
     public function view(User $user, Kejuaraan $kejuaraan): bool
     {
+        if ($user->isPengkot()) {
+            return $kejuaraan->cabor_id !== null && $user->managesCabor((int) $kejuaraan->cabor_id);
+        }
+
         return $user->can('kejuaraan.view') || $user->can('kejuaraan.manage');
     }
 
@@ -38,6 +42,10 @@ class KejuaraanPolicy
             if (! $user->hasRole('super_admin') && ! $user->hasRole('verifikator') && ! $user->can('verifikasi.manage')) {
                 return false;
             }
+        }
+
+        if ($user->isPengkot()) {
+            return $kejuaraan->cabor_id !== null && $user->managesCabor((int) $kejuaraan->cabor_id);
         }
 
         if ($user->hasRole('operator_organisasi') && $user->organisasi_id !== null) {
@@ -61,6 +69,10 @@ class KejuaraanPolicy
             return false;
         }
 
+        if ($user->isPengkot()) {
+            return $kejuaraan->cabor_id !== null && $user->managesCabor((int) $kejuaraan->cabor_id);
+        }
+
         if ($user->hasRole('operator_organisasi') && $user->organisasi_id !== null && $kejuaraan->organisasi_id !== null) {
             return (int) $user->organisasi_id === (int) $kejuaraan->organisasi_id;
         }
@@ -74,11 +86,23 @@ class KejuaraanPolicy
 
     public function restore(User $user, Kejuaraan $kejuaraan): bool
     {
-        return $user->can('kejuaraan.manage');
+        if (! $user->can('kejuaraan.manage')) {
+            return false;
+        }
+
+        if ($user->isPengkot()) {
+            return $kejuaraan->cabor_id !== null && $user->managesCabor((int) $kejuaraan->cabor_id);
+        }
+
+        return true;
     }
 
     public function forceDelete(User $user, Kejuaraan $kejuaraan): bool
     {
+        if ($user->isPengkot()) {
+            return false;
+        }
+
         return $user->can('kejuaraan.manage');
     }
 }

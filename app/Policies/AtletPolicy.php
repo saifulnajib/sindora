@@ -18,8 +18,30 @@ class AtletPolicy
         return $user->can('atlet.view');
     }
 
+    private function belongsToAssignedCabor(User $user, Atlet $atlet): bool
+    {
+        $assigned = $user->getAssignedCaborIds();
+        if (empty($assigned)) {
+            return false;
+        }
+
+        if ($atlet->cabor_id !== null && in_array((int) $atlet->cabor_id, $assigned, true)) {
+            return true;
+        }
+
+        if ($atlet->relationLoaded('cabors')) {
+            return $atlet->cabors->pluck('id')->map(fn ($id) => (int) $id)->intersect($assigned)->isNotEmpty();
+        }
+
+        return $atlet->cabors()->whereIn('cabors.id', $assigned)->exists();
+    }
+
     public function view(User $user, Atlet $atlet): bool
     {
+        if ($user->isPengkot()) {
+            return $this->belongsToAssignedCabor($user, $atlet);
+        }
+
         return $user->can('atlet.view');
     }
 
@@ -41,8 +63,12 @@ class AtletPolicy
             }
         }
 
+        if ($user->isPengkot()) {
+            return $this->belongsToAssignedCabor($user, $atlet);
+        }
+
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
-            return (int) $user->klub_id === (int) $atlet->klub_id;
+            return (int) $user->klub_id === (int) $atlet->klub_id || $atlet->atletCabors()->where('klub_id', $user->klub_id)->exists();
         }
 
         if ($user->hasRole('operator_klub') && $user->klub_id === null) {
@@ -58,8 +84,12 @@ class AtletPolicy
             return false;
         }
 
+        if ($user->isPengkot()) {
+            return $this->belongsToAssignedCabor($user, $atlet);
+        }
+
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
-            return (int) $user->klub_id === (int) $atlet->klub_id;
+            return (int) $user->klub_id === (int) $atlet->klub_id || $atlet->atletCabors()->where('klub_id', $user->klub_id)->exists();
         }
 
         if ($user->hasRole('operator_klub')) {
@@ -73,6 +103,10 @@ class AtletPolicy
     {
         if (! $user->can('atlet.manage')) {
             return false;
+        }
+
+        if ($user->isPengkot()) {
+            return $this->belongsToAssignedCabor($user, $atlet);
         }
 
         if ($user->hasRole('operator_klub') && $user->klub_id !== null) {
@@ -92,6 +126,10 @@ class AtletPolicy
             return false;
         }
 
+        if ($user->isPengkot()) {
+            return false;
+        }
+
         // Reserve forceDelete for super_admin / operator_organisasi; operator_klub cannot force
         if ($user->hasRole('operator_klub')) {
             return false;
@@ -106,11 +144,16 @@ class AtletPolicy
      * Rules (Sprint 1 spec 0.7):
      * - super_admin may always view full data
      * - operator_klub may view full data iff atlet->klub_id === user->klub_id
+     * - pengkot may view full data if atlet belongs to assigned cabor
      * - all other roles -> masked
      */
     public function viewSensitive(User $user, Atlet $atlet): bool
     {
         if ($user->hasRole('super_admin')) {
+            return true;
+        }
+
+        if ($user->isPengkot() && $this->belongsToAssignedCabor($user, $atlet)) {
             return true;
         }
 
@@ -127,6 +170,10 @@ class AtletPolicy
     public function viewSensitiveSdm(User $user, Sdm $sdm): bool
     {
         if ($user->hasRole('super_admin')) {
+            return true;
+        }
+
+        if ($user->isPengkot() && $sdm->cabor_id && $user->managesCabor((int) $sdm->cabor_id)) {
             return true;
         }
 

@@ -44,7 +44,17 @@ class KejuaraanController extends Controller
             ->orderByDesc('tanggal_mulai')
             ->orderBy('nama');
 
+        $user = $request->user();
+        if ($user && $user->isPengkot()) {
+            $query->whereIn('cabor_id', $user->getAssignedCaborIds());
+        }
+
         $paginator = $query->paginate(10)->withQueryString();
+
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
 
         return Inertia::render('Kejuaraan/Index', [
             'kejuaraans' => [
@@ -69,7 +79,7 @@ class KejuaraanController extends Controller
                 'date_to' => $dateTo,
                 'verification_status' => $status,
             ],
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
             'organisasis' => Organisasi::query()->select('id', 'nama')->orderBy('nama')->get(),
             'can' => [
                 'manage' => $request->user()->can('kejuaraan.manage'),
@@ -81,9 +91,15 @@ class KejuaraanController extends Controller
     {
         $this->authorize('create', Kejuaraan::class);
 
+        $user = $request->user();
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+
         return Inertia::render('Kejuaraan/Form', [
             'kejuaraan' => null,
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
             'organisasis' => Organisasi::query()->select('id', 'nama')->orderBy('nama')->get(),
             'isEdit' => false,
         ]);
@@ -96,6 +112,12 @@ class KejuaraanController extends Controller
         $validated = $request->validated();
 
         $data = collect($validated)->except(['poster'])->toArray();
+
+        if ($request->user() && $request->user()->isPengkot()) {
+            if (!empty($data['cabor_id']) && !$request->user()->managesCabor((int) $data['cabor_id'])) {
+                abort(403, 'Anda tidak memiliki hak kelola untuk cabor ini.');
+            }
+        }
 
         if ($request->hasFile('poster')) {
             $data['poster_path'] = $request->file('poster')->store('kejuaraan-posters', 'public');
@@ -124,11 +146,17 @@ class KejuaraanController extends Controller
     {
         $this->authorize('update', $kejuaraan);
 
+        $user = $request->user();
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+
         $kejuaraan->load(['organisasi', 'cabor']);
 
         return Inertia::render('Kejuaraan/Form', [
             'kejuaraan' => (new KejuaraanResource($kejuaraan))->resolve(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
             'organisasis' => Organisasi::query()->select('id', 'nama')->orderBy('nama')->get(),
             'isEdit' => true,
         ]);
@@ -141,6 +169,12 @@ class KejuaraanController extends Controller
         $validated = $request->validated();
 
         $data = collect($validated)->except(['poster'])->toArray();
+
+        if ($request->user() && $request->user()->isPengkot()) {
+            if (!empty($data['cabor_id']) && !$request->user()->managesCabor((int) $data['cabor_id'])) {
+                abort(403, 'Anda tidak memiliki hak kelola untuk cabor ini.');
+            }
+        }
 
         if ($request->hasFile('poster')) {
             if ($kejuaraan->poster_path) {

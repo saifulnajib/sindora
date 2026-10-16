@@ -42,7 +42,20 @@ class SarprasController extends Controller
             ->when($jenis, fn ($q) => $q->where('jenis', $jenis))
             ->orderBy('nama');
 
+        $user = $request->user();
+        if ($user && $user->isPengkot()) {
+            $query->whereIn('cabor_id', $user->getAssignedCaborIds());
+        }
+
         $paginator = $query->paginate(10)->withQueryString();
+
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+        $klubOptions = $assignedIds !== null
+            ? Klub::query()->whereIn('cabor_id', $assignedIds)->select('id', 'nama')->orderBy('nama')->get()
+            : Klub::query()->select('id', 'nama')->orderBy('nama')->get();
 
         return Inertia::render('Sarpras/Index', [
             'sarpras' => [
@@ -68,8 +81,8 @@ class SarprasController extends Controller
             ],
             'kelurahans' => Kelurahan::query()->select('id', 'nama', 'kecamatan_id')->orderBy('nama')->get(),
             'kecamatans' => Kecamatan::query()->select('id', 'nama')->orderBy('nama')->get(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
-            'klubs' => Klub::query()->select('id', 'nama')->orderBy('nama')->get(),
+            'cabors' => $caborOptions,
+            'klubs' => $klubOptions,
             'can' => [
                 'manage' => $request->user()->can('sarpras.manage'),
             ],
@@ -80,12 +93,21 @@ class SarprasController extends Controller
     {
         $this->authorize('create', Sarpras::class);
 
+        $user = $request->user();
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+        $klubOptions = $assignedIds !== null
+            ? Klub::query()->whereIn('cabor_id', $assignedIds)->select('id', 'nama')->orderBy('nama')->get()
+            : Klub::query()->select('id', 'nama')->orderBy('nama')->get();
+
         return Inertia::render('Sarpras/Form', [
             'sarpras' => null,
             'kelurahans' => Kelurahan::query()->select('id', 'nama', 'kecamatan_id')->with('kecamatan:id,nama')->orderBy('nama')->get(),
             'kecamatans' => Kecamatan::query()->select('id', 'nama')->orderBy('nama')->get(),
-            'klubs' => Klub::query()->select('id', 'nama')->orderBy('nama')->get(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
+            'klubs' => $klubOptions,
+            'cabors' => $caborOptions,
             'isEdit' => false,
         ]);
     }
@@ -97,6 +119,12 @@ class SarprasController extends Controller
         $validated = $request->validated();
 
         $data = collect($validated)->except(['foto'])->toArray();
+
+        if ($request->user() && $request->user()->isPengkot()) {
+            if (!empty($data['cabor_id']) && !$request->user()->managesCabor((int) $data['cabor_id'])) {
+                abort(403, 'Anda tidak memiliki hak kelola untuk cabor ini.');
+            }
+        }
 
         foreach (['kelurahan_id', 'kecamatan_id', 'klub_id', 'cabor_id'] as $fk) {
             if (array_key_exists($fk, $data) && $data[$fk] === '') {
@@ -129,14 +157,23 @@ class SarprasController extends Controller
     {
         $this->authorize('view', $sarpras);
 
+        $user = $request->user();
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+        $klubOptions = $assignedIds !== null
+            ? Klub::query()->whereIn('cabor_id', $assignedIds)->select('id', 'nama')->orderBy('nama')->get()
+            : Klub::query()->select('id', 'nama')->orderBy('nama')->get();
+
         $sarpras->load(['kelurahan', 'kecamatan', 'klub', 'cabor']);
 
         return Inertia::render('Sarpras/Form', [
             'sarpras' => (new SarprasResource($sarpras))->resolve(),
             'kelurahans' => Kelurahan::query()->select('id', 'nama', 'kecamatan_id')->with('kecamatan:id,nama')->orderBy('nama')->get(),
             'kecamatans' => Kecamatan::query()->select('id', 'nama')->orderBy('nama')->get(),
-            'klubs' => Klub::query()->select('id', 'nama')->orderBy('nama')->get(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
+            'klubs' => $klubOptions,
+            'cabors' => $caborOptions,
             'isEdit' => false,
             'isShow' => true,
         ]);
@@ -146,14 +183,23 @@ class SarprasController extends Controller
     {
         $this->authorize('update', $sarpras);
 
+        $user = $request->user();
+        $assignedIds = ($user && $user->isPengkot()) ? $user->getAssignedCaborIds() : null;
+        $caborOptions = $assignedIds !== null
+            ? Cabor::query()->whereIn('id', $assignedIds)->select('id', 'nama', 'kode')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+        $klubOptions = $assignedIds !== null
+            ? Klub::query()->whereIn('cabor_id', $assignedIds)->select('id', 'nama')->orderBy('nama')->get()
+            : Klub::query()->select('id', 'nama')->orderBy('nama')->get();
+
         $sarpras->load(['kelurahan', 'kecamatan', 'klub', 'cabor']);
 
         return Inertia::render('Sarpras/Form', [
             'sarpras' => (new SarprasResource($sarpras))->resolve(),
             'kelurahans' => Kelurahan::query()->select('id', 'nama', 'kecamatan_id')->with('kecamatan:id,nama')->orderBy('nama')->get(),
             'kecamatans' => Kecamatan::query()->select('id', 'nama')->orderBy('nama')->get(),
-            'klubs' => Klub::query()->select('id', 'nama')->orderBy('nama')->get(),
-            'cabors' => Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get(),
+            'klubs' => $klubOptions,
+            'cabors' => $caborOptions,
             'isEdit' => true,
         ]);
     }
@@ -165,6 +211,12 @@ class SarprasController extends Controller
         $validated = $request->validated();
 
         $data = collect($validated)->except(['foto'])->toArray();
+
+        if ($request->user() && $request->user()->isPengkot()) {
+            if (!empty($data['cabor_id']) && !$request->user()->managesCabor((int) $data['cabor_id'])) {
+                abort(403, 'Anda tidak memiliki hak kelola untuk cabor ini.');
+            }
+        }
 
         foreach (['kelurahan_id', 'kecamatan_id', 'klub_id', 'cabor_id'] as $fk) {
             if (array_key_exists($fk, $data) && $data[$fk] === '') {

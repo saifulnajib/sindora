@@ -19,6 +19,10 @@ class KlubPolicy
 
     public function view(User $user, Klub $klub): bool
     {
+        if ($user->isPengkot()) {
+            return $klub->cabor_id !== null && $user->managesCabor((int) $klub->cabor_id);
+        }
+
         return $user->can('klub.view');
     }
 
@@ -40,6 +44,10 @@ class KlubPolicy
             }
         }
 
+        if ($user->isPengkot()) {
+            return $klub->cabor_id !== null && $user->managesCabor((int) $klub->cabor_id);
+        }
+
         // Scoped ownership for operator_klub
         if ($user->hasRole('operator_klub')) {
             if ($user->klub_id === null) {
@@ -56,6 +64,10 @@ class KlubPolicy
     {
         if (! $user->can('klub.manage')) {
             return false;
+        }
+
+        if ($user->isPengkot()) {
+            return $klub->cabor_id !== null && $user->managesCabor((int) $klub->cabor_id);
         }
 
         if ($user->hasRole('operator_klub')) {
@@ -75,6 +87,10 @@ class KlubPolicy
             return false;
         }
 
+        if ($user->isPengkot()) {
+            return $klub->cabor_id !== null && $user->managesCabor((int) $klub->cabor_id);
+        }
+
         if ($user->hasRole('operator_klub')) {
             if ($user->klub_id === null) {
                 return false;
@@ -90,6 +106,10 @@ class KlubPolicy
     {
         if (! $user->can('klub.manage')) {
             return false;
+        }
+
+        if ($user->isPengkot()) {
+            return $klub->cabor_id !== null && $user->managesCabor((int) $klub->cabor_id);
         }
 
         if ($user->hasRole('operator_klub')) {

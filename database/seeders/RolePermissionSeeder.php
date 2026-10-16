@@ -84,6 +84,10 @@ class RolePermissionSeeder extends Seeder
         $roles = [
             'super_admin',
             'verifikator',
+            'pimpinan',
+            'pengurus_cabor',
+            'pengkot',
+            // Legacy aliases for backward compatibility
             'operator_organisasi',
             'operator_klub',
             'viewer',
@@ -120,11 +124,32 @@ class RolePermissionSeeder extends Seeder
             'audit.view',
         ]);
 
-        $operatorOrganisasi = Role::where('name', 'operator_organisasi')->first();
-        $operatorOrganisasi->syncPermissions([
+        $pimpinanPermissions = [
             'wilayah.view',
             'organisasi.view',
-            'organisasi.manage',
+            'cabor.view',
+            'klub.view',
+            'atlet.view',
+            'sdm.view',
+            'sarpras.view',
+            'kejuaraan.view',
+            'prestasi.view',
+            'pembinaan.view',
+            'dashboard.view',
+            'laporan.view',
+            'gis.view',
+            'audit.view',
+        ];
+
+        $pimpinan = Role::where('name', 'pimpinan')->first();
+        $pimpinan->syncPermissions($pimpinanPermissions);
+
+        $viewer = Role::where('name', 'viewer')->first();
+        $viewer->syncPermissions($pimpinanPermissions);
+
+        $pengkotPermissions = [
+            'wilayah.view',
+            'organisasi.view',
             'cabor.view',
             'cabor.manage',
             'klub.view',
@@ -141,10 +166,20 @@ class RolePermissionSeeder extends Seeder
             'prestasi.manage',
             'pembinaan.view',
             'pembinaan.manage',
+            'verifikasi.view',
             'dashboard.view',
             'laporan.view',
             'gis.view',
-        ]);
+        ];
+
+        $pengurusCabor = Role::where('name', 'pengurus_cabor')->first();
+        $pengurusCabor->syncPermissions($pengkotPermissions);
+
+        $pengkot = Role::where('name', 'pengkot')->first();
+        $pengkot->syncPermissions($pengkotPermissions);
+
+        $operatorOrganisasi = Role::where('name', 'operator_organisasi')->first();
+        $operatorOrganisasi->syncPermissions($pengkotPermissions);
 
         $operatorKlub = Role::where('name', 'operator_klub')->first();
         $operatorKlub->syncPermissions([
@@ -162,23 +197,6 @@ class RolePermissionSeeder extends Seeder
             'prestasi.manage',
             'pembinaan.view',
             'dashboard.view',
-            'gis.view',
-        ]);
-
-        $viewer = Role::where('name', 'viewer')->first();
-        $viewer->syncPermissions([
-            'wilayah.view',
-            'organisasi.view',
-            'cabor.view',
-            'klub.view',
-            'atlet.view',
-            'sdm.view',
-            'sarpras.view',
-            'kejuaraan.view',
-            'prestasi.view',
-            'pembinaan.view',
-            'dashboard.view',
-            'laporan.view',
             'gis.view',
         ]);
 

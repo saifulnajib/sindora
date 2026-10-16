@@ -13,6 +13,13 @@ class StoreUserRequest extends FormRequest
         return $this->user()?->can('user.manage') ?? false;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('role') && ! $this->has('roles')) {
+            $this->merge(['roles' => [$this->input('role')]]);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -24,6 +31,8 @@ class StoreUserRequest extends FormRequest
             'klub_id' => ['nullable', 'integer', Rule::exists('klubs', 'id')],
             'organisasi_id' => ['nullable', 'integer', Rule::exists('organisasis', 'id')],
             'cabor_id' => ['nullable', 'integer', Rule::exists('cabors', 'id')],
+            'cabor_ids' => ['nullable', 'array'],
+            'cabor_ids.*' => ['integer', Rule::exists('cabors', 'id')],
         ];
     }
 }

@@ -20,16 +20,29 @@ class CaborPolicy
 
     public function view(User $user, Cabor $cabor): bool
     {
+        if ($user->isPengkot()) {
+            return $user->managesCabor((int) $cabor->id);
+        }
+
         return $user->can('cabor.view') || $user->can('organisasi.view');
     }
 
     public function create(User $user): bool
     {
+        // Only super admin provisions cabors; pengkot only manages assigned cabors
+        if ($user->isPengkot()) {
+            return false;
+        }
+
         return $user->can('cabor.manage');
     }
 
     public function update(User $user, Cabor $cabor): bool
     {
+        if ($user->isPengkot()) {
+            return $user->managesCabor((int) $cabor->id);
+        }
+
         if (! $user->can('cabor.manage')) {
             return false;
         }
@@ -44,6 +57,10 @@ class CaborPolicy
 
     public function delete(User $user, Cabor $cabor): bool
     {
+        if ($user->isPengkot()) {
+            return false; // Pengkot cannot delete cabor entities
+        }
+
         if (! $user->can('cabor.manage')) {
             return false;
         }
@@ -57,11 +74,19 @@ class CaborPolicy
 
     public function restore(User $user, Cabor $cabor): bool
     {
+        if ($user->isPengkot()) {
+            return false;
+        }
+
         return $user->can('cabor.manage');
     }
 
     public function forceDelete(User $user, Cabor $cabor): bool
     {
+        if ($user->isPengkot()) {
+            return false;
+        }
+
         return $user->can('cabor.manage');
     }
 }

@@ -21,8 +21,56 @@ class DashboardController extends Controller
 {
     public function index(Request $request): Response
     {
-        // 6.1 Widgets — cached 60 seconds, counts only terverifikasi
-        $widgets = Cache::remember('dashboard.widgets', 60, function () {
+        $rawBidang = strtolower(trim($request->string('bidang')->toString()));
+        $activeBidang = in_array($rawBidang, ['koni', 'kormi', 'disabilitas'], true) ? $rawBidang : 'all';
+
+        $user = $request->user();
+        $isPengkot = $user && $user->isPengkot();
+        $assignedIds = $isPengkot ? $user->getAssignedCaborIds() : null;
+
+        $caborIds = null;
+        if ($isPengkot) {
+            if ($activeBidang !== 'all') {
+                $caborIds = Cabor::where('kategori', $activeBidang)->whereIn('id', $assignedIds)->pluck('id')->toArray();
+            } else {
+                $caborIds = $assignedIds;
+            }
+        } else {
+            if ($activeBidang !== 'all') {
+                $caborIds = Cabor::where('kategori', $activeBidang)->pluck('id')->toArray();
+            }
+        }
+
+        // Summary for each bidang olahraga (KONI, KORMI, DISABILITAS)
+        $cacheKeyBidang = $isPengkot ? 'dashboard.bidang.user.' . $user->id : 'dashboard.bidang_summary';
+        $bidangOlahraga = Cache::remember($cacheKeyBidang, 60, function () use ($assignedIds) {
+            return $this->getBidangOlahragaSummary($assignedIds);
+        });
+
+        // 6.1 Widgets — cached 60 seconds per active bidang, counts only terverifikasi
+        $cacheSuffix = $isPengkot ? 'user.' . $user->id . '.' . $activeBidang : $activeBidang;
+        $cacheKeyWidgets = 'dashboard.widgets.' . $cacheSuffix;
+        $widgets = Cache::remember($cacheKeyWidgets, 60, function () use ($caborIds) {
+            if ($caborIds !== null) {
+                $cIds = $caborIds;
+
+                return [
+                    'klub' => Klub::terverifikasi()->whereIn('cabor_id', $cIds)->count(),
+                    'atlet' => Atlet::terverifikasi()->where(function ($q) use ($cIds) {
+                        $q->whereIn('cabor_id', $cIds)->orWhereHas('cabors', fn ($sq) => $sq->whereIn('cabor_id', $cIds));
+                    })->count(),
+                    'pelatih' => Sdm::terverifikasi()->where('tipe', 'pelatih')->whereIn('cabor_id', $cIds)->count(),
+                    'wasit' => Sdm::terverifikasi()->where('tipe', 'wasit')->whereIn('cabor_id', $cIds)->count(),
+                    'tenaga' => Sdm::terverifikasi()->where('tipe', 'tenaga')->whereIn('cabor_id', $cIds)->count(),
+                    'sdm_total' => Sdm::terverifikasi()->whereIn('cabor_id', $cIds)->count(),
+                    'sarpras' => Sarpras::terverifikasi()->whereIn('cabor_id', $cIds)->count(),
+                    'kejuaraan' => Kejuaraan::terverifikasi()->whereIn('cabor_id', $cIds)->count(),
+                    'prestasi' => Prestasi::terverifikasi()->whereIn('cabor_id', $cIds)->count(),
+                    'pembinaan' => Pembinaan::terverifikasi()->whereIn('cabor_id', $cIds)->count(),
+                    'cabor' => count($cIds),
+                ];
+            }
+
             return [
                 'klub' => Klub::terverifikasi()->count(),
                 'atlet' => Atlet::terverifikasi()->count(),
@@ -38,7 +86,33 @@ class DashboardController extends Controller
             ];
         });
 
-        $pendingVerifikasi = Cache::remember('dashboard.pending', 60, function () {
+        $cacheKeyPending = 'dashboard.pending.' . $cacheSuffix;
+        $pendingVerifikasi = Cache::remember($cacheKeyPending, 60, function () use ($caborIds) {
+            if ($caborIds !== null) {
+                $cIds = $caborIds;
+
+                $k = Klub::menungguVerifikasi()->whereIn('cabor_id', $cIds)->count();
+                $a = Atlet::menungguVerifikasi()->where(function ($q) use ($cIds) {
+                    $q->whereIn('cabor_id', $cIds)->orWhereHas('cabors', fn ($sq) => $sq->whereIn('cabor_id', $cIds));
+                })->count();
+                $s = Sdm::menungguVerifikasi()->whereIn('cabor_id', $cIds)->count();
+                $sp = Sarpras::menungguVerifikasi()->whereIn('cabor_id', $cIds)->count();
+                $kj = Kejuaraan::menungguVerifikasi()->whereIn('cabor_id', $cIds)->count();
+                $pr = Prestasi::menungguVerifikasi()->whereIn('cabor_id', $cIds)->count();
+                $pb = Pembinaan::menungguVerifikasi()->whereIn('cabor_id', $cIds)->count();
+
+                return [
+                    'klub' => $k,
+                    'atlet' => $a,
+                    'sdm' => $s,
+                    'sarpras' => $sp,
+                    'kejuaraan' => $kj,
+                    'prestasi' => $pr,
+                    'pembinaan' => $pb,
+                    'total' => $k + $a + $s + $sp + $kj + $pr + $pb,
+                ];
+            }
+
             return [
                 'klub' => Klub::menungguVerifikasi()->count(),
                 'atlet' => Atlet::menungguVerifikasi()->count(),
@@ -58,23 +132,25 @@ class DashboardController extends Controller
         });
 
         // 6.2 Tren Medali — group by YEAR(tanggal) or YEAR(created_at)
-        $trenMedali = $this->getTrenMedali();
+        $trenMedali = $this->getTrenMedali($caborIds);
 
         // 6.3 Rasio Pelatih:Atlet per Cabor
-        $rasioPelatihAtlet = $this->getRasioPelatihAtlet();
+        $rasioPelatihAtlet = $this->getRasioPelatihAtlet($caborIds);
 
         // 6.4 Distribusi Atlet per Kecamatan / Cabor
-        [$distribusiKecamatan, $distribusiCabor] = $this->getDistribusiAtlet();
+        [$distribusiKecamatan, $distribusiCabor] = $this->getDistribusiAtlet($caborIds);
 
         // 6.5 Cabor Unggulan
-        $caborUnggulan = $this->getCaborUnggulan();
+        $caborUnggulan = $this->getCaborUnggulan($caborIds);
 
         // 6.6 Lisensi Kadaluarsa
-        $lisensi = $this->getLisensiKadaluarsa();
+        $lisensi = $this->getLisensiKadaluarsa($caborIds);
 
         return Inertia::render('Dashboard', [
             'widgets' => $widgets,
             'pendingVerifikasi' => $pendingVerifikasi,
+            'bidangOlahraga' => $bidangOlahraga,
+            'activeBidang' => $activeBidang,
             'trenMedali' => $trenMedali,
             'rasioPelatihAtlet' => $rasioPelatihAtlet,
             'distribusiKecamatan' => $distribusiKecamatan,
@@ -84,24 +160,106 @@ class DashboardController extends Controller
         ]);
     }
 
-    private function getTrenMedali(): array
+    private function getBidangOlahragaSummary(?array $scopedCaborIds = null): array
+    {
+        $categories = [
+            'koni' => [
+                'key' => 'koni',
+                'nama' => 'KONI',
+                'subnama' => 'Olahraga Prestasi',
+                'deskripsi' => 'Komite Olahraga Nasional Indonesia',
+                'theme' => 'red',
+                'badge' => 'Prestasi',
+            ],
+            'kormi' => [
+                'key' => 'kormi',
+                'nama' => 'KORMI',
+                'subnama' => 'Olahraga Rekreasi & Masyarakat',
+                'deskripsi' => 'Komite Olahraga Masyarakat Indonesia',
+                'theme' => 'amber',
+                'badge' => 'Rekreasi / Masyarakat',
+            ],
+            'disabilitas' => [
+                'key' => 'disabilitas',
+                'nama' => 'DISABILITAS',
+                'subnama' => 'Olahraga Disabilitas (NPCI)',
+                'deskripsi' => 'National Paralympic Committee Indonesia / Olahraga Khusus',
+                'theme' => 'blue',
+                'badge' => 'Disabilitas / NPCI',
+            ],
+        ];
+
+        $summary = [];
+
+        foreach ($categories as $key => $meta) {
+            $cQuery = Cabor::where('kategori', $key);
+            if ($scopedCaborIds !== null) {
+                $cQuery->whereIn('id', $scopedCaborIds);
+            }
+            $caborIds = $cQuery->pluck('id')->toArray();
+            $caborCount = count($caborIds);
+
+            $atletCount = 0;
+            $klubCount = 0;
+            $pelatihCount = 0;
+            $prestasiCount = 0;
+            $sarprasCount = 0;
+            $kejuaraanCount = 0;
+
+            if ($caborCount > 0) {
+                $atletCount = Atlet::terverifikasi()
+                    ->where(function ($q) use ($caborIds) {
+                        $q->whereIn('cabor_id', $caborIds)
+                            ->orWhereHas('cabors', fn ($sq) => $sq->whereIn('cabor_id', $caborIds));
+                    })
+                    ->count();
+
+                $klubCount = Klub::terverifikasi()->whereIn('cabor_id', $caborIds)->count();
+                $pelatihCount = Sdm::terverifikasi()->where('tipe', 'pelatih')->whereIn('cabor_id', $caborIds)->count();
+                $prestasiCount = Prestasi::terverifikasi()->whereIn('cabor_id', $caborIds)->count();
+                $sarprasCount = Sarpras::terverifikasi()->whereIn('cabor_id', $caborIds)->count();
+                $kejuaraanCount = Kejuaraan::terverifikasi()->whereIn('cabor_id', $caborIds)->count();
+            }
+
+            $summary[] = array_merge($meta, [
+                'cabor_count' => $caborCount,
+                'atlet_count' => $atletCount,
+                'klub_count' => $klubCount,
+                'pelatih_count' => $pelatihCount,
+                'prestasi_count' => $prestasiCount,
+                'sarpras_count' => $sarprasCount,
+                'kejuaraan_count' => $kejuaraanCount,
+            ]);
+        }
+
+        return $summary;
+    }
+
+    private function getTrenMedali(?array $caborIds = null): array
     {
         // Only terverifikasi, medali not null, focus on emas/perak/perunggu but include others if present
-        $rows = Prestasi::terverifikasi()
+        $query = Prestasi::terverifikasi()
             ->whereNotNull('medali')
-            ->selectRaw('YEAR(COALESCE(tanggal, created_at)) as tahun, medali, COUNT(*) as cnt')
-            ->groupBy(DB::raw('YEAR(COALESCE(tanggal, created_at))'), 'medali')
+            ->when($caborIds !== null, fn ($q) => $q->whereIn('cabor_id', $caborIds));
+
+        $driver = DB::connection()->getDriverName();
+        $yearCol = $driver === 'sqlite'
+            ? "strftime('%Y', COALESCE(tanggal, created_at))"
+            : "YEAR(COALESCE(tanggal, created_at))";
+
+        $rows = (clone $query)
+            ->selectRaw("{$yearCol} as tahun, medali, COUNT(*) as cnt")
+            ->groupBy(DB::raw($yearCol), 'medali')
             ->orderBy('tahun')
             ->get();
 
         // Alternative fallback for MySQL strict: use DB::raw alias tahun can't group by alias without raw
-        // If above returns empty due to COALESCE grouping issue on some drivers, fallback to simple YEAR(tanggal)
         if ($rows->isEmpty()) {
-            $rows = Prestasi::terverifikasi()
-                ->whereNotNull('medali')
-                ->selectRaw('YEAR(tanggal) as tahun, medali, COUNT(*) as cnt')
+            $yearColSimple = $driver === 'sqlite' ? "strftime('%Y', tanggal)" : "YEAR(tanggal)";
+            $rows = (clone $query)
+                ->selectRaw("{$yearColSimple} as tahun, medali, COUNT(*) as cnt")
                 ->whereNotNull('tanggal')
-                ->groupBy(DB::raw('YEAR(tanggal)'), 'medali')
+                ->groupBy(DB::raw($yearColSimple), 'medali')
                 ->orderBy('tahun')
                 ->get();
         }
@@ -119,9 +277,6 @@ class DashboardController extends Controller
             $cnt = (int) $r->cnt;
             if (in_array($medali, ['emas', 'perak', 'perunggu'], true)) {
                 $grouped[$tahun][$medali] += $cnt;
-            } else {
-                // Count non-standard medali into total only; optionally track separately
-                // We keep them out of emas/perak/perunggu but still in total
             }
             $grouped[$tahun]['total'] += $cnt;
         }
@@ -132,10 +287,11 @@ class DashboardController extends Controller
         return array_values($grouped);
     }
 
-    private function getRasioPelatihAtlet(): array
+    private function getRasioPelatihAtlet(?array $caborIds = null): array
     {
         $cabors = Cabor::query()
             ->select('id', 'nama', 'kode')
+            ->when($caborIds !== null, fn ($q) => $q->whereIn('id', $caborIds))
             ->withCount([
                 'atlets as atlet_count' => function ($q) {
                     $q->terverifikasi();
@@ -175,14 +331,28 @@ class DashboardController extends Controller
         })->toArray();
     }
 
-    private function getDistribusiAtlet(): array
+    private function getDistribusiAtlet(?array $caborIds = null): array
     {
         // Distribusi per Kecamatan (via kelurahan->kecamatan)
-        $perKecamatan = DB::table('atlets')
+        $kecQuery = DB::table('atlets')
             ->join('kelurahans', 'kelurahans.id', '=', 'atlets.kelurahan_id')
             ->join('kecamatans', 'kecamatans.id', '=', 'kelurahans.kecamatan_id')
             ->where('atlets.verification_status', 'terverifikasi')
-            ->whereNull('atlets.deleted_at')
+            ->whereNull('atlets.deleted_at');
+
+        if ($caborIds !== null) {
+            $kecQuery->where(function ($q) use ($caborIds) {
+                $q->whereIn('atlets.cabor_id', $caborIds)
+                    ->orWhereExists(function ($sub) use ($caborIds) {
+                        $sub->select(DB::raw(1))
+                            ->from('atlet_cabor')
+                            ->whereColumn('atlet_cabor.atlet_id', 'atlets.id')
+                            ->whereIn('atlet_cabor.cabor_id', $caborIds);
+                    });
+            });
+        }
+
+        $perKecamatan = $kecQuery
             ->groupBy('kecamatans.id', 'kecamatans.nama')
             ->select('kecamatans.nama as nama', DB::raw('COUNT(*) as count'))
             ->orderByDesc('count')
@@ -190,15 +360,20 @@ class DashboardController extends Controller
             ->map(fn ($r) => ['nama' => $r->nama, 'count' => (int) $r->count])
             ->toArray();
 
-        // If no kelurahan linkage, fallback to 0 — also include kecamatans with zero? Not needed
-
-        // Distribusi per Cabor
-        $perCabor = DB::table('atlets')
-            ->join('cabors', 'cabors.id', '=', 'atlets.cabor_id')
+        // Distribusi per Cabor (via atlet_cabor pivot)
+        $caborQuery = DB::table('atlet_cabor')
+            ->join('atlets', 'atlets.id', '=', 'atlet_cabor.atlet_id')
+            ->join('cabors', 'cabors.id', '=', 'atlet_cabor.cabor_id')
             ->where('atlets.verification_status', 'terverifikasi')
-            ->whereNull('atlets.deleted_at')
+            ->whereNull('atlets.deleted_at');
+
+        if ($caborIds !== null) {
+            $caborQuery->whereIn('cabors.id', $caborIds);
+        }
+
+        $perCabor = $caborQuery
             ->groupBy('cabors.id', 'cabors.nama')
-            ->select('cabors.nama as nama', DB::raw('COUNT(*) as count'))
+            ->select('cabors.nama as nama', DB::raw('COUNT(DISTINCT atlets.id) as count'))
             ->orderByDesc('count')
             ->get()
             ->map(fn ($r) => ['nama' => $r->nama, 'count' => (int) $r->count])
@@ -207,7 +382,7 @@ class DashboardController extends Controller
         return [$perKecamatan, $perCabor];
     }
 
-    private function getCaborUnggulan(): array
+    private function getCaborUnggulan(?array $caborIds = null): array
     {
         $bobot = config('sindora.bobot_cabor_unggulan', [
             'prestasi_nasional' => 40,
@@ -217,7 +392,10 @@ class DashboardController extends Controller
             'sdm_bersertifikat' => 5,
         ]);
 
-        $cabors = Cabor::select('id', 'nama', 'kode')->orderBy('nama')->get();
+        $cabors = Cabor::select('id', 'nama', 'kode')
+            ->when($caborIds !== null, fn ($q) => $q->whereIn('id', $caborIds))
+            ->orderBy('nama')
+            ->get();
 
         $ranking = [];
         foreach ($cabors as $cabor) {
@@ -282,7 +460,7 @@ class DashboardController extends Controller
         return $ranking;
     }
 
-    private function getLisensiKadaluarsa(): array
+    private function getLisensiKadaluarsa(?array $caborIds = null): array
     {
         $thresholds = config('sindora.license_h.thresholds', [
             'aman' => ['min' => 91, 'label' => 'Aman', 'color' => 'green', 'badge' => 'bg-green-100 text-green-800'],
@@ -293,6 +471,7 @@ class DashboardController extends Controller
 
         $sdms = Sdm::query()
             ->whereNotNull('expired_at')
+            ->when($caborIds !== null, fn ($q) => $q->whereIn('cabor_id', $caborIds))
             ->select('id', 'nama', 'tipe', 'expired_at', 'nomor_lisensi', 'cabor_id')
             ->with('cabor:id,nama')
             ->get();

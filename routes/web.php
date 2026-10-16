@@ -15,6 +15,7 @@ use App\Http\Controllers\OrganisasiController;
 use App\Http\Controllers\PembinaanController;
 use App\Http\Controllers\PrestasiController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\SarprasController;
 use App\Http\Controllers\SarprasJadwalController;
 use App\Http\Controllers\SdmController;
@@ -36,6 +37,9 @@ Route::middleware('auth')->group(function () {
     // Sprint 2: Manajemen Pengguna + Master Data (authorize via Policy inside controllers)
     Route::resource('users', UserController::class);
     Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
+    Route::get('roles', [RolePermissionController::class, 'index'])->name('roles.index');
+    Route::put('roles', [RolePermissionController::class, 'update'])->name('roles.update');
+    Route::post('roles/reset-default', [RolePermissionController::class, 'resetDefault'])->name('roles.reset-default');
 
     Route::resource('kecamatans', KecamatanController::class);
     Route::resource('kelurahans', KelurahanController::class);
