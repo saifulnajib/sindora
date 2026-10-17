@@ -2,6 +2,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import { useConfirm } from '@/Composables/useConfirm';
+
+const { deleteRecord } = useConfirm();
 
 const props = defineProps({
     kecamatans: Object,
@@ -16,9 +19,14 @@ watch(search, (v) => {
     t = setTimeout(() => router.get(route('kecamatans.index'), { search: v }, { preserveState: true, replace: true }), 300);
 });
 
-function destroyRow(id) {
-    if (!confirm('Hapus kecamatan ini?')) return;
-    router.delete(route('kecamatans.destroy', id));
+function destroyRow(id, name) {
+    deleteRecord(route('kecamatans.destroy', id), {
+        title: 'Hapus Kecamatan',
+        message: 'Apakah Anda yakin ingin menghapus data wilayah kecamatan ini?',
+        itemName: name,
+        warningDetail: 'Data kelurahan, klub, dan sarpras di bawah wilayah kecamatan ini akan terdampak.',
+        confirmText: 'Ya, Hapus Kecamatan',
+    });
 }
 </script>
 
@@ -51,7 +59,7 @@ function destroyRow(id) {
                                     <td class="px-4 py-3 font-mono text-xs">{{ k.kode ?? '—' }}</td>
                                     <td class="px-4 py-3">{{ k.kelurahans_count ?? 0 }}</td> <td class="px-4 py-3">{{ k.klubs_count ?? 0 }}</td> <td class="px-4 py-3 text-right">
                                         <Link v-if="can?.manage" :href="route('kecamatans.edit', k.id)" class="mr-2 text-blue-600 hover:text-blue-800 text-sm font-medium dark:text-gray-100">Edit</Link>
-                                        <button v-if="can?.manage" @click="destroyRow(k.id)" class="text-red-600 hover:text-red-800 text-sm font-medium dark:text-gray-100">Hapus</button>
+                                        <button v-if="can?.manage" @click="destroyRow(k.id, k.nama)" class="text-red-600 hover:text-red-800 text-sm font-medium dark:text-gray-100">Hapus</button>
                                         <Link v-else :href="route('kecamatans.show', k.id)" class="text-blue-600 text-sm">Lihat</Link>
                                     </td>
                                 </tr>

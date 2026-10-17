@@ -2,6 +2,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import { useConfirm } from '@/Composables/useConfirm';
+
+const { deleteRecord } = useConfirm();
 
 const props = defineProps({
     klubs: Object,
@@ -21,9 +24,14 @@ watch([search, cabor_id], ([s, cid]) => {
     t = setTimeout(() => router.get(route('klubs.index'), { search: s, cabor_id: cid }, { preserveState: true, replace: true }), 300);
 });
 
-function destroyRow(id) {
-    if (!confirm('Hapus klub ini?')) return;
-    router.delete(route('klubs.destroy', id));
+function destroyRow(id, name) {
+    deleteRecord(route('klubs.destroy', id), {
+        title: 'Hapus Klub Olahraga',
+        message: 'Apakah Anda yakin ingin menghapus data klub olahraga ini?',
+        itemName: name,
+        warningDetail: 'Data keanggotaan dan jadwal klub terkait akan terdampak.',
+        confirmText: 'Ya, Hapus Klub',
+    });
 }
 </script>
 
@@ -71,7 +79,7 @@ function destroyRow(id) {
                                     <td class="px-4 py-3 text-right">
                                         <Link :href="route('klubs.show', k.id)" class="mr-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Lihat</Link>
                                         <Link v-if="can?.manage" :href="route('klubs.edit', k.id)" class="mr-2 text-sm font-medium dark:text-gray-100 text-blue-600 hover:text-blue-800">Edit</Link>
-                                        <button v-if="can?.manage" @click="destroyRow(k.id)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
+                                        <button v-if="can?.manage" @click="destroyRow(k.id, k.nama)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
                                     </td>
                                 </tr>
                                 <tr v-if="!klubs.data || klubs.data.length===0"><td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Tidak ada data.</td></tr>

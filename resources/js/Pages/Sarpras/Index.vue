@@ -2,6 +2,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import { useConfirm } from '@/Composables/useConfirm';
+
+const { deleteRecord } = useConfirm();
 
 const props = defineProps({
     sarpras: Object,
@@ -23,9 +26,14 @@ watch([search, kondisi, cabor_id], ([s, k, cid]) => {
     t = setTimeout(() => router.get(route('sarpras.index'), { search: s, kondisi: k, cabor_id: cid }, { preserveState: true, replace: true }), 300);
 });
 
-function destroyRow(id) {
-    if (!confirm('Hapus sarpras ini?')) return;
-    router.delete(route('sarpras.destroy', id));
+function destroyRow(id, name) {
+    deleteRecord(route('sarpras.destroy', id), {
+        title: 'Hapus Sarana & Prasarana',
+        message: 'Apakah Anda yakin ingin menghapus data sarana/prasarana olahraga ini?',
+        itemName: name,
+        warningDetail: 'Data aset, lokasi geospasial (GIS), dan seluruh riwayat jadwal penggunaan fasilitas ini akan ikut terhapus.',
+        confirmText: 'Ya, Hapus Sarpras',
+    });
 }
 </script>
 
@@ -80,7 +88,7 @@ function destroyRow(id) {
                                     <td class="px-4 py-3">{{ s.cabor?.nama ?? '—' }}</td> <td class="px-4 py-3 text-right">
                                         <Link :href="route('sarpras.show', s.id)" class="mr-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Lihat</Link>
                                         <Link v-if="can?.manage" :href="route('sarpras.edit', s.id)" class="mr-2 text-sm font-medium dark:text-gray-100 text-blue-600 hover:text-blue-800">Edit</Link>
-                                        <button v-if="can?.manage" @click="destroyRow(s.id)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
+                                        <button v-if="can?.manage" @click="destroyRow(s.id, s.nama)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
                                     </td>
                                 </tr>
                                 <tr v-if="!sarpras.data || sarpras.data.length===0"><td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Tidak ada data.</td></tr>

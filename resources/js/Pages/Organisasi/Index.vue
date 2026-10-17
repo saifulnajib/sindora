@@ -2,6 +2,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import { useConfirm } from '@/Composables/useConfirm';
+
+const { deleteRecord } = useConfirm();
 
 const props = defineProps({
     organisasis: Object,
@@ -16,7 +19,15 @@ watch([search, jenis], ([s,j])=>{
     clearTimeout(t);
     t=setTimeout(()=> router.get(route('organisasis.index'), { search:s, jenis:j }, { preserveState:true, replace:true }),300);
 });
-function destroyRow(id){ if(!confirm('Hapus organisasi ini?')) return; router.delete(route('organisasis.destroy', id)); }
+function destroyRow(id, name) {
+    deleteRecord(route('organisasis.destroy', id), {
+        title: 'Hapus Organisasi Olahraga',
+        message: 'Apakah Anda yakin ingin menghapus data induk organisasi olahraga ini?',
+        itemName: name,
+        warningDetail: 'Relasi cabor dan kepengurusan di bawah organisasi ini akan terdampak.',
+        confirmText: 'Ya, Hapus Organisasi',
+    });
+}
 </script>
 
 <template>
@@ -50,7 +61,7 @@ function destroyRow(id){ if(!confirm('Hapus organisasi ini?')) return; router.de
                                     <td class="px-4 py-3">{{ o.singkatan ?? '—' }}</td> <td class="px-4 py-3"><span class="rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs dark:text-gray-300">{{ o.jenis ?? '—' }}</span></td>
                                     <td class="px-4 py-3">{{ o.cabors_count ?? 0 }}</td> <td class="px-4 py-3 text-right">
                                         <Link v-if="can?.manage" :href="route('organisasis.edit', o.id)" class="mr-2 text-sm font-medium dark:text-gray-100 text-blue-600 hover:text-blue-800">Edit</Link>
-                                        <button v-if="can?.manage" @click="destroyRow(o.id)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
+                                        <button v-if="can?.manage" @click="destroyRow(o.id, o.nama)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
                                         <Link v-else :href="route('organisasis.show', o.id)" class="text-sm text-blue-600">Lihat</Link>
                                     </td>
                                 </tr>

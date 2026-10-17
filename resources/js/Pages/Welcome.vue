@@ -30,6 +30,13 @@ const props = defineProps({
     atlets: { type: Array, default: () => [] },
     pelatihs: { type: Array, default: () => [] },
     caborsList: { type: Array, default: () => [] },
+    sebaranKategori: {
+        type: Object,
+        default: () => ({
+            total_atlet: 0,
+            items: [],
+        }),
+    },
 });
 
 // Active tab for explorer
@@ -359,6 +366,131 @@ function getMedaliBadge(medali) {
                     </div>
                 </div>
 
+                <!-- SEBARAN ATLET BERDASARKAN KATEGORI BIDANG OLAHRAGA (KONI, KORMI, DISABILITAS) -->
+                <div class="mt-10 rounded-3xl border border-slate-200 bg-gradient-to-b from-slate-50/90 to-white p-6 sm:p-8 shadow-xs dark:border-slate-800 dark:from-slate-900/80 dark:to-slate-900/40">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-5 dark:border-slate-800">
+                        <div>
+                            <div class="inline-flex items-center gap-2 rounded-md bg-red-100 px-2.5 py-1 text-xs font-bold text-red-800 dark:bg-red-950 dark:text-red-300">
+                                🏛️ Tiga Pilar Keolahragaan Kota Tanjungpinang
+                            </div>
+                            <h3 class="mt-2 text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                                Sebaran Atlet Berdasarkan Kategori Bidang Olahraga
+                            </h3>
+                            <p class="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                                Distribusi atlet binaan Kota Tanjungpinang terbagi dalam tiga pilar: <b>KONI</b> (Olahraga Prestasi), <b>KORMI</b> (Olahraga Rekreasi & Masyarakat), dan <b>DISABILITAS</b> (NPCI / Olahraga Khusus).
+                            </p>
+                        </div>
+
+                        <div class="shrink-0 rounded-2xl bg-white px-5 py-3 border border-slate-200/80 shadow-2xs dark:bg-slate-800/80 dark:border-slate-700 text-left md:text-right">
+                            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Atlet Kota</span>
+                            <p class="text-2xl font-black text-slate-900 dark:text-white">
+                                {{ (sebaranKategori?.total_atlet || stats.atlet_total || 0).toLocaleString() }}
+                                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Atlet Terbina</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- PROPORTION DISTRIBUTION BAR -->
+                    <div class="mt-6">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">
+                            <span>Proporsi Sebaran Tiap Kategori</span>
+                            <span class="text-[11px] text-slate-500 font-normal">Persentase dari total atlet binaan terverifikasi</span>
+                        </div>
+                        <div class="flex h-3.5 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800">
+                            <div
+                                v-for="item in sebaranKategori?.items || []"
+                                :key="item.key"
+                                :style="{ width: (item.persentase || 0) + '%' }"
+                                :class="{
+                                    'bg-red-600': item.key === 'koni',
+                                    'bg-amber-500': item.key === 'kormi',
+                                    'bg-blue-600': item.key === 'disabilitas',
+                                }"
+                                class="transition-all duration-700 min-w-0"
+                                :title="`${item.nama}: ${item.atlet_count} atlet (${item.persentase}%)`"
+                            ></div>
+                        </div>
+                    </div>
+
+                    <!-- 3 CARDS: KONI, KORMI, DISABILITAS -->
+                    <div class="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+                        <div
+                            v-for="item in sebaranKategori?.items || []"
+                            :key="item.key"
+                            class="relative flex flex-col justify-between overflow-hidden rounded-2xl border p-5 shadow-xs transition hover:-translate-y-1 hover:shadow-md"
+                            :class="{
+                                'border-red-200/90 bg-white dark:border-red-900/50 dark:bg-slate-900': item.key === 'koni',
+                                'border-amber-200/90 bg-white dark:border-amber-900/50 dark:bg-slate-900': item.key === 'kormi',
+                                'border-blue-200/90 bg-white dark:border-blue-900/50 dark:bg-slate-900': item.key === 'disabilitas',
+                            }"
+                        >
+                            <div>
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="text-3xl">{{ item.icon }}</span>
+                                        <div>
+                                            <h4 class="text-lg font-black tracking-tight text-slate-900 dark:text-white">{{ item.nama }}</h4>
+                                            <p class="text-xs font-semibold text-slate-500 dark:text-slate-400">{{ item.subnama }}</p>
+                                        </div>
+                                    </div>
+                                    <span class="rounded-full px-2.5 py-0.5 text-[10px] font-bold border" :class="item.badge_class">
+                                        {{ item.badge }}
+                                    </span>
+                                </div>
+
+                                <p class="mt-3 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                                    {{ item.deskripsi }}
+                                </p>
+                            </div>
+
+                            <div class="mt-5 space-y-3">
+                                <div
+                                    class="rounded-xl p-3.5"
+                                    :class="{
+                                        'bg-red-50/80 dark:bg-red-950/30': item.key === 'koni',
+                                        'bg-amber-50/80 dark:bg-amber-950/30': item.key === 'kormi',
+                                        'bg-blue-50/80 dark:bg-blue-950/30': item.key === 'disabilitas',
+                                    }"
+                                >
+                                    <div class="flex items-baseline justify-between">
+                                        <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">Populasi Atlet:</span>
+                                        <span
+                                            class="text-2xl font-black"
+                                            :class="{
+                                                'text-red-900 dark:text-red-300': item.key === 'koni',
+                                                'text-amber-900 dark:text-amber-300': item.key === 'kormi',
+                                                'text-blue-900 dark:text-blue-300': item.key === 'disabilitas',
+                                            }"
+                                        >
+                                            {{ (item.atlet_count || 0).toLocaleString() }} <span class="text-xs font-normal">Orang</span>
+                                        </span>
+                                    </div>
+                                    <div class="mt-1 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                                        <span>Porsi: <b>{{ item.persentase }}%</b></span>
+                                        <span>{{ item.atlet_putra || 0 }} Putra • {{ item.atlet_putri || 0 }} Putri</span>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-slate-100 dark:border-slate-800 pt-3 text-xs">
+                                    <div class="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                                        <span class="font-medium">Total Cabang Olahraga:</span>
+                                        <span class="font-bold text-slate-900 dark:text-white">{{ item.cabor_count }} Cabor</span>
+                                    </div>
+                                    <div v-if="item.cabors_sample && item.cabors_sample.length > 0" class="mt-2 flex flex-wrap gap-1">
+                                        <span
+                                            v-for="cs in item.cabors_sample"
+                                            :key="cs"
+                                            class="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600 dark:bg-slate-800 dark:text-slate-300 font-medium"
+                                        >
+                                            {{ cs }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- CHARTS & BREAKDOWN GRID -->
                 <div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-12">
                     <!-- TREN MEDALI TAHUNAN (BAR CHART) -->
@@ -586,8 +718,16 @@ function getMedaliBadge(medali) {
                                     <p class="text-xs font-bold text-slate-800 truncate dark:text-slate-200">
                                         {{ item.atlet_nama }}
                                     </p>
-                                    <p class="text-[11px] text-red-700 font-medium truncate dark:text-red-400">
-                                        {{ item.cabor_nama }}
+                                    <p class="text-[11px] text-red-700 font-medium truncate dark:text-red-400 flex items-center gap-1.5">
+                                        <span>{{ item.cabor_nama }}</span>
+                                        <span v-if="item.cabor_kategori" class="rounded px-1.5 py-0.2 text-[9px] font-bold uppercase tracking-wider"
+                                            :class="{
+                                                'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300': item.cabor_kategori === 'koni',
+                                                'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300': item.cabor_kategori === 'kormi',
+                                                'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300': item.cabor_kategori === 'disabilitas',
+                                            }">
+                                            {{ item.cabor_kategori }}
+                                        </span>
                                     </p>
                                 </div>
                                 <div class="text-right">
@@ -606,19 +746,40 @@ function getMedaliBadge(medali) {
 
                 <!-- TAB CONTENT 2: ATLET -->
                 <div v-show="activeTab === 'atlet'" class="mt-8">
+                    <!-- Privacy Notice Banner -->
+                    <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <span class="text-xs text-slate-500 dark:text-slate-400">Profil atlet berprestasi & terbina Kota Tanjungpinang</span>
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300 self-start sm:self-auto">
+                            <svg class="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            Nama atlet disensor untuk privasi publik
+                        </span>
+                    </div>
+
                     <div v-if="filteredAtlets.length > 0" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         <div
                             v-for="atlet in filteredAtlets"
                             :key="atlet.id"
                             class="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition hover:-translate-y-0.5 hover:border-emerald-400/50 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
                         >
-                            <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-start justify-between gap-2">
                                 <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 font-black text-emerald-800 text-sm shadow-xs dark:bg-emerald-950 dark:text-emerald-300">
                                     {{ atlet.nama.charAt(0) }}
                                 </div>
-                                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                                    {{ atlet.jenis_kelamin === 'L' ? 'Putra' : 'Putri' }}
-                                </span>
+                                <div class="flex items-center gap-1 flex-wrap justify-end">
+                                    <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                                        {{ atlet.jenis_kelamin === 'L' ? 'Putra' : 'Putri' }}
+                                    </span>
+                                    <span v-if="atlet.cabor_kategori" class="rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                                        :class="{
+                                            'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300': atlet.cabor_kategori === 'koni',
+                                            'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300': atlet.cabor_kategori === 'kormi',
+                                            'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300': atlet.cabor_kategori === 'disabilitas',
+                                        }">
+                                        {{ atlet.cabor_kategori }}
+                                    </span>
+                                </div>
                             </div>
 
                             <div class="mt-3">

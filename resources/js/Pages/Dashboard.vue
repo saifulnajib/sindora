@@ -92,7 +92,7 @@ const pendingTotal = computed(() => pending.value.total ?? 0);
                     </Link>
                     <span class="hidden sm:inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-red-200 dark:bg-red-950/40 dark:text-red-200 dark:ring-red-900">
                         <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                        Sprint 6 — Dashboard & Analitik
+                        Pusat Data & Analitik
                     </span>
                 </div>
             </div>

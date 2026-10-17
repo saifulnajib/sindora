@@ -126,6 +126,33 @@ class AtletResource extends JsonResource
         return mb_substr($alamat, 0, 3).' ***';
     }
 
+    public static function maskNama(?string $nama): ?string
+    {
+        if (blank($nama)) {
+            return $nama;
+        }
+
+        $nama = trim((string) $nama);
+        if (in_array(strtolower($nama), ['tim', 'kontingen', 'tim / kontingen', 'beregu'], true)) {
+            return $nama;
+        }
+
+        $words = preg_split('/\s+/', $nama);
+        $masked = array_map(function ($word) {
+            $len = mb_strlen($word);
+            if ($len <= 2) {
+                return mb_substr($word, 0, 1) . '*';
+            }
+            if ($len === 3) {
+                return mb_substr($word, 0, 1) . '*' . mb_substr($word, -1);
+            }
+
+            return mb_substr($word, 0, 1) . str_repeat('*', $len - 2) . mb_substr($word, -1);
+        }, $words);
+
+        return implode(' ', $masked);
+    }
+
     private function formatCabors($defaultStatus = 'daerah'): array
     {
         if ($this->relationLoaded('atletCabors')) {

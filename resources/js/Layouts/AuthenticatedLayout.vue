@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
+import ConfirmDialogGlobal from '@/Components/ConfirmDialogGlobal.vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 
 const page = usePage();
@@ -275,8 +276,8 @@ const navMasterData = computed(() => [
 
             <!-- Footer -->
             <div class="border-t border-red-800/60 px-4 py-3">
-                <p class="text-[11px] leading-tight text-red-200">SINDORA v1 — Sprint 1</p>
-                <p class="text-[11px] text-red-300">16 tables · 5 roles · 18 wilayah</p>
+                <p class="text-[11px] font-semibold leading-tight text-red-200">SINDORA Tanjungpinang</p>
+                <p class="text-[11px] text-red-300/80">Sistem Informasi Database Olahraga</p>
             </div>
         </aside>
 
@@ -419,8 +420,11 @@ const navMasterData = computed(() => [
 
             <!-- Footer -->
             <footer class="border-t border-gray-200 bg-white px-4 py-4 text-center text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 sm:px-6 lg:px-8">
-                © 2026 Dispora Kota Tanjungpinang — SINDORA · Sprint 1 · Laravel 12 + Inertia Vue
+                © 2026 Dinas Pemuda dan Olahraga Pemerintah Kota Tanjungpinang — SINDORA
             </footer>
         </div>
     </div>
+
+    <!-- Global Rich Confirm Dialog for Delete & Critical Actions -->
+    <ConfirmDialogGlobal />
 </template>

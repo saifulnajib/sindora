@@ -142,7 +142,7 @@ const fillForm = (acc) => {
                             <div class="text-[11px] tracking-[0.18em] text-white/70 font-semibold">KOTA TANJUNGPINANG</div>
                             <div class="text-xl font-extrabold tracking-tight -mt-1">SINDORA</div>
                         </div>
-                        <span class="ml-2 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-bold tracking-widest">Sprint 1</span>
+                        <span class="ml-2 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase">DISPORA</span>
                     </div>
                     <div class="mt-10 max-w-[520px]">
                         <h1 class="text-4xl xl:text-[42px] font-extrabold leading-[1.05] tracking-tight">
@@ -154,14 +154,14 @@ const fillForm = (acc) => {
                     </div>
                     <div class="mt-8 grid grid-cols-3 gap-3 max-w-[520px]">
                         <div class="rounded-2xl bg-white/10 backdrop-blur p-4 ring-1 ring-white/15">
-                            <div class="text-2xl font-black">16</div>
-                            <div class="text-[11px] tracking-widest text-white/70">TABEL DB</div>
-                            <div class="text-xs text-white/60">MySQL 8</div>
+                            <div class="text-2xl font-black">3</div>
+                            <div class="text-[11px] tracking-widest text-white/70">PILAR OLAHRAGA</div>
+                            <div class="text-xs text-white/60">KONI • KORMI • NPCI</div>
                         </div>
                         <div class="rounded-2xl bg-white/10 backdrop-blur p-4 ring-1 ring-white/15">
-                            <div class="text-2xl font-black">5</div>
-                            <div class="text-[11px] tracking-widest text-white/70">ROLE RBAC</div>
-                            <div class="text-xs text-white/60">Spatie Permission</div>
+                            <div class="text-2xl font-black">TERPADU</div>
+                            <div class="text-[11px] tracking-widest text-white/70">DATABASE</div>
+                            <div class="text-xs text-white/60">Atlet • Klub • Sarpras</div>
                         </div>
                         <div class="rounded-2xl bg-white/10 backdrop-blur p-4 ring-1 ring-white/15">
                             <div class="text-2xl font-black">18</div>
@@ -170,15 +170,15 @@ const fillForm = (acc) => {
                         </div>
                     </div>
                     <div class="mt-6 flex flex-wrap gap-2 max-w-[520px]">
-                        <span class="rounded-full bg-white/10 px-3 py-1.5 text-xs ring-1 ring-white/15">Laravel 12</span>
-                        <span class="rounded-full bg-white/10 px-3 py-1.5 text-xs ring-1 ring-white/15">Inertia Vue 3</span>
-                        <span class="rounded-full bg-white/10 px-3 py-1.5 text-xs ring-1 ring-white/15">Tailwind</span>
-                        <span class="rounded-full bg-white/10 px-3 py-1.5 text-xs ring-1 ring-white/15">Leaflet GIS</span>
+                        <span class="rounded-full bg-white/10 px-3 py-1.5 text-xs ring-1 ring-white/15">Pembinaan Prestasi</span>
+                        <span class="rounded-full bg-white/10 px-3 py-1.5 text-xs ring-1 ring-white/15">Olahraga Rekreasi</span>
+                        <span class="rounded-full bg-white/10 px-3 py-1.5 text-xs ring-1 ring-white/15">Paralympic / Disabilitas</span>
+                        <span class="rounded-full bg-white/10 px-3 py-1.5 text-xs ring-1 ring-white/15">Pemetaan Geospasial</span>
                     </div>
                 </div>
                 <div class="space-y-3 max-w-[520px]">
                     <div class="flex items-center gap-2 text-[11px] tracking-[0.14em] text-white/60 font-semibold">
-                        <span class="h-px w-6 bg-white/30" /> SPRINT 1 — Fondasi & RBAC
+                        <span class="h-px w-6 bg-white/30" /> PORTAL RESMI DINAS PEMUDA DAN OLAHRAGA
                     </div>
                     <div v-if="isLocal" class="rounded-xl bg-black/20 p-3 text-xs leading-5 text-white/70 ring-1 ring-white/10">
                         Semua akun demo password: <span class="font-mono font-bold text-white">password</span> • Quick login aktif di env local
@@ -200,7 +200,7 @@ const fillForm = (acc) => {
                         <div class="text-xs tracking-[0.14em] text-slate-500 font-semibold">KOTA TANJUNGPINANG</div>
                         <div class="font-extrabold tracking-tight text-slate-900 -mt-1">SINDORA</div>
                     </div>
-                    <span class="ml-auto rounded-full bg-[#7f1d1d] dark:bg-red-700 px-2.5 py-1 text-[10px] font-bold tracking-widest text-white">Sprint 1</span>
+                    <span class="ml-auto rounded-full bg-[#7f1d1d] dark:bg-red-700 px-2.5 py-1 text-[10px] font-bold tracking-widest text-white uppercase">DISPORA</span>
                 </div>
 
                 <div class="rounded-[20px] bg-white dark:bg-gray-800 shadow-[0_8px_40px_rgba(127,29,29,0.08)] ring-1 ring-slate-200 dark:ring-gray-700 overflow-hidden">
@@ -300,7 +300,7 @@ const fillForm = (acc) => {
                     </form>
 
                     <div class="bg-slate-50 dark:bg-gray-800/80 px-6 sm:px-8 py-3 flex items-center justify-between text-[11px] leading-4 text-slate-500 ring-1 ring-slate-100 dark:ring-gray-700">
-                        <span>© 2026 Dispora Kota Tanjungpinang • SINDORA v1 — Sprint 1</span>
+                        <span>© 2026 Dispora Kota Tanjungpinang • SINDORA</span>
                         <span class="hidden sm:inline">DATA → INFORMASI → ANALISIS → KEBIJAKAN → PRESTASI</span>
                     </div>
                 </div>

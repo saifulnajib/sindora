@@ -2,6 +2,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import { useConfirm } from '@/Composables/useConfirm';
+
+const { deleteRecord } = useConfirm();
 
 const props = defineProps({
     kelurahans: Object,
@@ -19,7 +22,15 @@ watch([search, kecamatan_id], ([s, kid]) => {
     t=setTimeout(()=> router.get(route('kelurahans.index'), { search: s, kecamatan_id: kid }, { preserveState:true, replace:true }),300);
 });
 
-function destroyRow(id){ if(!confirm('Hapus kelurahan ini?')) return; router.delete(route('kelurahans.destroy', id)); }
+function destroyRow(id, name) {
+    deleteRecord(route('kelurahans.destroy', id), {
+        title: 'Hapus Kelurahan',
+        message: 'Apakah Anda yakin ingin menghapus data wilayah kelurahan ini?',
+        itemName: name,
+        warningDetail: 'Data klub dan sarpras olahraga di kelurahan ini akan terdampak.',
+        confirmText: 'Ya, Hapus Kelurahan',
+    });
+}
 </script>
 
 <template>
@@ -50,7 +61,7 @@ function destroyRow(id){ if(!confirm('Hapus kelurahan ini?')) return; router.del
                                     <td class="px-4 py-3 font-mono text-xs">{{ k.kode ?? '—' }}</td>
                                     <td class="px-4 py-3">{{ k.kecamatan?.nama ?? '—' }}</td> <td class="px-4 py-3 text-right">
                                         <Link v-if="can?.manage" :href="route('kelurahans.edit', k.id)" class="mr-2 text-sm font-medium dark:text-gray-100 text-blue-600 hover:text-blue-800">Edit</Link>
-                                        <button v-if="can?.manage" @click="destroyRow(k.id)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
+                                        <button v-if="can?.manage" @click="destroyRow(k.id, k.nama)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
                                         <Link v-else :href="route('kelurahans.show', k.id)" class="text-sm text-blue-600">Lihat</Link>
                                     </td>
                                 </tr>

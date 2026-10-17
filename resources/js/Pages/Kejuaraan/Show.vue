@@ -3,6 +3,9 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import ConfirmModal from '@/Components/ConfirmModal.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
+import { useConfirm } from '@/Composables/useConfirm';
+
+const { deleteRecord } = useConfirm();
 
 const props = defineProps({
     kejuaraan: Object,
@@ -38,8 +41,13 @@ const jenisBadge = computed(() => {
 const verificationBadge = computed(() => k.value.verification_badge ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300');
 
 function destroyRow() {
-    if (!confirm('Hapus kejuaraan ini? Data prestasi terkait tetap ada tapi tidak terhapus.')) return;
-    router.delete(route('kejuaraans.destroy', k.value.id));
+    deleteRecord(route('kejuaraans.destroy', k.value.id), {
+        title: 'Hapus Kejuaraan',
+        message: 'Apakah Anda yakin ingin menghapus kejuaraan ini?',
+        itemName: k.value.nama,
+        warningDetail: 'Data prestasi atlet terkait tetap ada di sistem, namun data kejuaraan ini akan dihapus permanen.',
+        confirmText: 'Ya, Hapus Kejuaraan',
+    });
 }
 const showLightbox = ref(false);
 function openLightbox() { if (k.value.poster_url) showLightbox.value = true; }

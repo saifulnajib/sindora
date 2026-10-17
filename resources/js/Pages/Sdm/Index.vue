@@ -2,6 +2,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import { useConfirm } from '@/Composables/useConfirm';
+
+const { deleteRecord } = useConfirm();
 
 const props = defineProps({
     sdms: Object,
@@ -22,9 +25,14 @@ watch([search, tipe, cabor_id, expired], ([s, tp, cid, ex]) => {
     t = setTimeout(() => router.get(route('sdms.index'), { search: s, tipe: tp, cabor_id: cid, expired: ex }, { preserveState: true, replace: true }), 300);
 });
 
-function destroyRow(id) {
-    if (!confirm('Hapus SDM ini?')) return;
-    router.delete(route('sdms.destroy', id));
+function destroyRow(id, name) {
+    deleteRecord(route('sdms.destroy', id), {
+        title: 'Hapus Data SDM Olahraga',
+        message: 'Apakah Anda yakin ingin menghapus data SDM (Pelatih/Wasit/Juri) ini?',
+        itemName: name,
+        warningDetail: 'Data sertifikasi, lisensi, dan riwayat penugasan SDM terkait akan ikut terhapus.',
+        confirmText: 'Ya, Hapus SDM',
+    });
 }
 
 function tipeBadge(s) {
@@ -101,7 +109,7 @@ function lisensiBadge(s) {
                                         <span v-else class="text-gray-400">—</span> </td> <td class="px-4 py-3 text-right">
                                         <Link :href="route('sdms.show', s.id)" class="mr-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Lihat</Link>
                                         <Link v-if="can?.manage" :href="route('sdms.edit', s.id)" class="mr-2 text-sm font-medium dark:text-gray-100 text-blue-600 hover:text-blue-800">Edit</Link>
-                                        <button v-if="can?.manage" @click="destroyRow(s.id)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
+                                        <button v-if="can?.manage" @click="destroyRow(s.id, s.nama)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
                                     </td>
                                 </tr>
                                 <tr v-if="!sdms.data || sdms.data.length===0"><td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Tidak ada data.</td></tr>

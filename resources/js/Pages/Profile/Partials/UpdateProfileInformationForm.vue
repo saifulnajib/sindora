@@ -73,7 +73,7 @@ const form = useForm({
                 <InputError class="mt-2" :message="form.errors.email" />
             </div>
 
-            <!-- Sprint 2 1.6: show roles & permissions read-only -->
+            <!-- Peran & Hak Akses pengguna (read-only) -->
             <div class="rounded-lg border border-gray-100 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-700/40">
                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Roles & Permissions</p>
                 <div class="mt-2 flex flex-wrap gap-1.5">

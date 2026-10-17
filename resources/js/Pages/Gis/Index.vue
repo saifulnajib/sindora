@@ -198,7 +198,7 @@ const showClusterNote = computed(() => sarprasCount.value + klubCount.value > 50
 
                     <span class="ml-auto text-xs text-gray-500 dark:text-gray-400">
                         Filter: <span class="font-semibold">{{ sarprasCount + klubCount }}</span> titik di peta
-                        <span v-if="showClusterNote" class="ml-2 rounded bg-amber-100 px-2 py-0.5 text-[11px] text-amber-800">cluster via markercluster jika &gt;50 — aktif di Sprint 8.7</span>
+                        <span v-if="showClusterNote" class="ml-2 rounded bg-amber-100 px-2 py-0.5 text-[11px] text-amber-800">Pengelompokan titik aktif (&gt;50 lokasi)</span>
                     </span>
                 </div>
 
@@ -406,17 +406,25 @@ const showClusterNote = computed(() => sarprasCount.value + klubCount.value > 50
                             </div>
                         </div>
 
-                        <!-- Map footer meta + DOD placeholder -->
+                        <!-- Map footer meta -->
                         <div class="flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 bg-gray-50 px-4 py-2 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-700/30 dark:text-gray-300">
-                            <span>Leaflet {{ '1.9.4' }} · vue-leaflet 0.10.1 · OSM · Tanjungpinang center</span>
-                            <span class="rounded bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500 ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-600">DOD overlay (8.7) — placeholder</span>
+                            <span>Sistem Informasi Geospasial Olahraga · Pusat Kota Tanjungpinang</span>
+                            <span class="rounded bg-white px-2 py-0.5 text-[11px] font-medium text-gray-500 ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-600">Pemetaan Sarpras & Klub</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Bottom placeholder for DOD -->
-                <div class="mt-4 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-xs text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                    Placeholder Sprint 8.7: Overlay DOD / densitas atlet & heatmap akan ditambahkan di sini tanpa mengubah struktur Gis/Index.vue saat ini.
+                <!-- Bottom info -->
+                <div class="mt-4 rounded-xl border border-gray-200 bg-white p-4 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                    <div class="flex items-center gap-2 font-medium text-gray-800 dark:text-gray-200">
+                        <svg class="h-4 w-4 text-[#7f1d1d] dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Informasi Pemetaan Spasial Wilayah</span>
+                    </div>
+                    <p class="mt-1 text-gray-500 dark:text-gray-400">
+                        Pemetaan koordinat mencakup 4 Kecamatan dan 18 Kelurahan di Kota Tanjungpinang untuk pemantauan sebaran sarana prasarana olahraga serta sekretariat klub/perkumpulan olahraga binaan Dispora.
+                    </p>
                 </div>
             </div>
         </div>

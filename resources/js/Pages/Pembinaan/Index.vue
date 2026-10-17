@@ -2,6 +2,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import { useConfirm } from '@/Composables/useConfirm';
+
+const { deleteRecord } = useConfirm();
 
 const props = defineProps({
     pembinaans: Object,
@@ -31,9 +34,14 @@ watch([search, tahun_anggaran, status, organisasi_id, cabor_id, verification_sta
     }, { preserveState: true, replace: true }), 300);
 });
 
-function destroyRow(id) {
-    if (!confirm('Hapus pembinaan ini?')) return;
-    router.delete(route('pembinaans.destroy', id));
+function destroyRow(id, name) {
+    deleteRecord(route('pembinaans.destroy', id), {
+        title: 'Hapus Program Pembinaan',
+        message: 'Apakah Anda yakin ingin menghapus program pembinaan ini?',
+        itemName: name,
+        warningDetail: 'Data alokasi anggaran, peserta atlet, pelatih, dan laporan pembinaan ini akan ikut terhapus.',
+        confirmText: 'Ya, Hapus Pembinaan',
+    });
 }
 
 function getVerificationBadge(statusVal) {
@@ -145,7 +153,7 @@ function getStatusBadge(statusVal) {
                                     <td class="px-4 py-3 text-right">
                                         <Link :href="route('pembinaans.show', p.id)" class="mr-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Lihat</Link>
                                         <Link v-if="can?.manage" :href="route('pembinaans.edit', p.id)" class="mr-2 text-sm font-medium dark:text-gray-100 text-blue-600 hover:text-blue-800">Edit</Link>
-                                        <button v-if="can?.manage" @click="destroyRow(p.id)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
+                                        <button v-if="can?.manage" @click="destroyRow(p.id, p.nama_program)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
                                     </td>
                                 </tr>
                                 <tr v-if="!pembinaans.data || pembinaans.data.length===0"><td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Tidak ada data.</td></tr>

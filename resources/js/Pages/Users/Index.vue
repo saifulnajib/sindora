@@ -2,6 +2,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import { useConfirm } from '@/Composables/useConfirm';
+
+const { deleteRecord } = useConfirm();
 
 const props = defineProps({
     users: Object,
@@ -44,9 +47,14 @@ watch([search, role], ([s, r]) => {
     }, 300);
 });
 
-function destroyUser(id) {
-    if (!confirm('Hapus user ini?')) return;
-    router.delete(route('users.destroy', id));
+function destroyUser(id, name) {
+    deleteRecord(route('users.destroy', id), {
+        title: 'Hapus Akun Pengguna',
+        message: 'Apakah Anda yakin ingin menghapus akun pengguna sistem ini?',
+        itemName: name,
+        warningDetail: 'Akses login pengguna dan seluruh penugasan role/hak akses akan dicabut secara permanen.',
+        confirmText: 'Ya, Hapus Pengguna',
+    });
 }
 </script>
 
@@ -130,7 +138,7 @@ function destroyUser(id) {
                                     </td>
                                     <td class="px-4 py-3 text-right">
                                         <Link :href="route('users.edit', u.id)" class="mr-2 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">Edit</Link>
-                                        <button @click="destroyUser(u.id)" class="text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Hapus</button>
+                                        <button @click="destroyUser(u.id, u.name)" class="text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Hapus</button>
                                     </td>
                                 </tr>
                                 <tr v-if="!users.data || users.data.length===0">

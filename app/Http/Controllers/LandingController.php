@@ -148,11 +148,11 @@ class LandingController extends Controller
             return $result;
         });
 
-        // 5. Daftar Prestasi Terbaru
+        // 5. Daftar Prestasi Terbaru (Nama atlet dimasking/sensor untuk proteksi privasi publik)
         $recentPrestasis = Prestasi::terverifikasi()
             ->with([
                 'atlet:id,nama,foto_path,jenis_kelamin',
-                'cabor:id,nama,kode',
+                'cabor:id,nama,kode,kategori',
                 'kejuaraan:id,nama,tingkat,lokasi,tanggal_mulai',
             ])
             ->orderByDesc('tanggal')
@@ -161,10 +161,11 @@ class LandingController extends Controller
             ->get()
             ->map(fn ($p) => [
                 'id' => $p->id,
-                'atlet_nama' => $p->atlet?->nama ?? 'Tim / Kontingen',
+                'atlet_nama' => $p->atlet?->nama ? self::maskNama($p->atlet->nama) : 'Tim / Kontingen',
                 'atlet_foto' => $p->atlet?->foto_path ? asset('storage/' . $p->atlet->foto_path) : null,
                 'cabor_nama' => $p->cabor?->nama ?? '-',
                 'cabor_kode' => $p->cabor?->kode ?? '-',
+                'cabor_kategori' => $p->cabor?->kategori ?? null,
                 'kejuaraan_nama' => $p->kejuaraan?->nama ?? '-',
                 'kejuaraan_tingkat' => $p->kejuaraan?->tingkat ?? '-',
                 'kategori_kelas' => $p->kategori_kelas,
@@ -175,12 +176,12 @@ class LandingController extends Controller
                 'nomor_sertifikat' => $p->nomor_sertifikat,
             ]);
 
-        // 6. Daftar Atlet Unggulan / Terdaftar (Public-Safe, tanpa NIK/No HP)
+        // 6. Daftar Atlet Unggulan / Terdaftar (Public-Safe: Nama dimasking/sensor, tanpa NIK/No HP)
         $atlets = Atlet::terverifikasi()
             ->with([
-                'atletCabors.cabor:id,nama,kode',
+                'atletCabors.cabor:id,nama,kode,kategori',
                 'atletCabors.klub:id,nama',
-                'cabor:id,nama,kode',
+                'cabor:id,nama,kode,kategori',
                 'klub:id,nama',
                 'kelurahan.kecamatan:id,nama',
             ])
@@ -200,11 +201,17 @@ class LandingController extends Controller
                     $klubNama = $a->klub?->nama ?? '-';
                 }
 
+                $caborKategori = $a->cabor?->kategori;
+                if (! $caborKategori && $a->atletCabors->isNotEmpty()) {
+                    $caborKategori = $a->atletCabors->first()->cabor?->kategori;
+                }
+
                 return [
                     'id' => $a->id,
-                    'nama' => $a->nama,
+                    'nama' => self::maskNama($a->nama),
                     'jenis_kelamin' => $a->jenis_kelamin,
                     'cabor_nama' => $caborNama,
+                    'cabor_kategori' => $caborKategori,
                     'klub_nama' => $klubNama,
                     'kecamatan_nama' => $a->kelurahan?->kecamatan?->nama ?? '-',
                     'kelas_tanding' => $a->kelas_tanding,
@@ -238,7 +245,83 @@ class LandingController extends Controller
             ]);
 
         // 8. Cabor list for instant filter
-        $caborsList = Cabor::select('id', 'nama', 'kode')->orderBy('nama')->get();
+        $caborsList = Cabor::select('id', 'nama', 'kode', 'kategori')->orderBy('nama')->get();
+
+        // 9. Sebaran Atlet Tiap Kategori (KONI, KORMI, DISABILITAS)
+        $sebaranKategori = Cache::remember('landing.sebaran_kategori', 60, function () {
+            $categories = [
+                'koni' => [
+                    'key' => 'koni',
+                    'nama' => 'KONI',
+                    'subnama' => 'Olahraga Prestasi',
+                    'deskripsi' => 'Komite Olahraga Nasional Indonesia — Pembinaan atlet prestasi dan kejuaraan resmi',
+                    'theme' => 'red',
+                    'icon' => '🏆',
+                    'badge' => 'Prestasi',
+                    'badge_class' => 'bg-red-100 text-red-800 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800',
+                ],
+                'kormi' => [
+                    'key' => 'kormi',
+                    'nama' => 'KORMI',
+                    'subnama' => 'Olahraga Masyarakat / Rekreasi',
+                    'deskripsi' => 'Komite Olahraga Masyarakat Indonesia — Olahraga rekreasi, tradisional & kebugaran',
+                    'theme' => 'amber',
+                    'icon' => '🏃‍♂️',
+                    'badge' => 'Masyarakat / Rekreasi',
+                    'badge_class' => 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800',
+                ],
+                'disabilitas' => [
+                    'key' => 'disabilitas',
+                    'nama' => 'DISABILITAS',
+                    'subnama' => 'Olahraga Disabilitas (NPCI)',
+                    'deskripsi' => 'National Paralympic Committee Indonesia — Pembinaan atlet berkebutuhan khusus & paralimpik',
+                    'theme' => 'blue',
+                    'icon' => '♿',
+                    'badge' => 'Disabilitas / NPCI',
+                    'badge_class' => 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800',
+                ],
+            ];
+
+            $totalAllAtlets = Atlet::terverifikasi()->count();
+            $result = [];
+
+            foreach ($categories as $key => $meta) {
+                $cabors = Cabor::where('kategori', $key)->get(['id', 'nama', 'kode']);
+                $caborIds = $cabors->pluck('id')->toArray();
+                $caborCount = count($caborIds);
+
+                $atletCount = 0;
+                $atletPutra = 0;
+                $atletPutri = 0;
+
+                if ($caborCount > 0) {
+                    $atletQuery = Atlet::terverifikasi()->where(function ($q) use ($caborIds) {
+                        $q->whereIn('cabor_id', $caborIds)
+                            ->orWhereHas('cabors', fn ($sq) => $sq->whereIn('cabors.id', $caborIds));
+                    });
+
+                    $atletCount = (clone $atletQuery)->count();
+                    $atletPutra = (clone $atletQuery)->where('jenis_kelamin', 'L')->count();
+                    $atletPutri = (clone $atletQuery)->where('jenis_kelamin', 'P')->count();
+                }
+
+                $persentase = $totalAllAtlets > 0 ? round(($atletCount / $totalAllAtlets) * 100, 1) : 0;
+
+                $result[] = array_merge($meta, [
+                    'cabor_count' => $caborCount,
+                    'atlet_count' => $atletCount,
+                    'atlet_putra' => $atletPutra,
+                    'atlet_putri' => $atletPutri,
+                    'persentase' => $persentase,
+                    'cabors_sample' => $cabors->take(4)->pluck('nama')->toArray(),
+                ]);
+            }
+
+            return [
+                'total_atlet' => $totalAllAtlets,
+                'items' => $result,
+            ];
+        });
 
         return Inertia::render('Welcome', [
             'canLogin' => Route::has('login'),
@@ -251,6 +334,38 @@ class LandingController extends Controller
             'atlets' => $atlets,
             'pelatihs' => $pelatihs,
             'caborsList' => $caborsList,
+            'sebaranKategori' => $sebaranKategori,
         ]);
+    }
+
+    /**
+     * Sensor / Masking nama atlet untuk proteksi privasi publik di halaman landing.
+     * Contoh: "Budi Santoso" -> "B**i S*****o", "Saiful Najib" -> "S****l N***b"
+     */
+    public static function maskNama(?string $nama): string
+    {
+        if (blank($nama)) {
+            return '-';
+        }
+
+        $nama = trim((string) $nama);
+        if (in_array(strtolower($nama), ['tim', 'kontingen', 'tim / kontingen', 'beregu'], true)) {
+            return $nama;
+        }
+
+        $words = preg_split('/\s+/', $nama);
+        $masked = array_map(function ($word) {
+            $len = mb_strlen($word);
+            if ($len <= 2) {
+                return mb_substr($word, 0, 1) . '*';
+            }
+            if ($len === 3) {
+                return mb_substr($word, 0, 1) . '*' . mb_substr($word, -1);
+            }
+
+            return mb_substr($word, 0, 1) . str_repeat('*', $len - 2) . mb_substr($word, -1);
+        }, $words);
+
+        return implode(' ', $masked);
     }
 }

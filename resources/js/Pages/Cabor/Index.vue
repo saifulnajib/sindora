@@ -2,6 +2,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import { useConfirm } from '@/Composables/useConfirm';
+
+const { deleteRecord } = useConfirm();
 
 const props = defineProps({
     cabors: Object,
@@ -23,9 +26,14 @@ watch([search, organisasi_id, kategori], ([s, oid, kat]) => {
     }, 300);
 });
 
-function destroyRow(id) {
-    if (!confirm('Apakah Anda yakin ingin menghapus cabor ini? Seluruh data terkait akan ikut terhapus.')) return;
-    router.delete(route('cabors.destroy', id));
+function destroyRow(id, name) {
+    deleteRecord(route('cabors.destroy', id), {
+        title: 'Hapus Cabang Olahraga',
+        message: 'Apakah Anda yakin ingin menghapus cabang olahraga ini?',
+        itemName: name,
+        warningDetail: 'Seluruh data klub binaan, atlet, dan prestasi di bawah cabor ini akan ikut terhapus.',
+        confirmText: 'Ya, Hapus Cabor',
+    });
 }
 
 function getKategoriBadge(kat) {
@@ -242,7 +250,7 @@ function getKategoriBadge(kat) {
 
                                             <button
                                                 v-if="c.can_delete"
-                                                @click="destroyRow(c.id)"
+                                                @click="destroyRow(c.id, c.nama)"
                                                 class="rounded px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 hover:text-red-800 dark:hover:bg-red-950/40"
                                             >
                                                 Hapus

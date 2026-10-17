@@ -3,6 +3,9 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import ConfirmModal from '@/Components/ConfirmModal.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import { useConfirm } from '@/Composables/useConfirm';
+
+const { deleteRecord } = useConfirm();
 
 const props = defineProps({
     atlets: Object,
@@ -24,9 +27,14 @@ watch([search, klub_id, cabor_id, status_pembinaan, verification_status], ([s, k
     t = setTimeout(() => router.get(route('atlets.index'), { search: s, klub_id: kid, cabor_id: cid, status_pembinaan: sp, verification_status: vs }, { preserveState: true, replace: true }), 300);
 });
 
-function destroyRow(id) {
-    if (!confirm('Hapus atlet ini?')) return;
-    router.delete(route('atlets.destroy', id));
+function destroyRow(id, name) {
+    deleteRecord(route('atlets.destroy', id), {
+        title: 'Hapus Data Atlet',
+        message: 'Apakah Anda yakin ingin menghapus data atlet ini?',
+        itemName: name,
+        warningDetail: 'Profil atlet, riwayat prestasi, dan keanggotaan cabor terkait akan ikut terhapus.',
+        confirmText: 'Ya, Hapus Atlet',
+    });
 }
 
 const showSubmitModal = ref(false);
@@ -158,7 +166,7 @@ function getVerificationLabel(status) {
                                         <div class="flex justify-end gap-2">
                                             <Link :href="route('atlets.show', a.id)" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Lihat</Link>
                                             <Link v-if="can?.manage" :href="route('atlets.edit', a.id)" class="text-sm font-medium dark:text-gray-100 text-blue-600 hover:text-blue-800">Edit</Link>
-                                            <button v-if="can?.manage" @click="destroyRow(a.id)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
+                                            <button v-if="can?.manage" @click="destroyRow(a.id, a.nama)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
                                             <button v-if="can?.manage && (a.verification_status === 'draft' || a.verification_status === 'perlu_perbaikan')" @click="openSubmitModal(a)" class="rounded bg-amber-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-amber-600">Ajukan Verifikasi</button>
                                         </div>
                                     </td>

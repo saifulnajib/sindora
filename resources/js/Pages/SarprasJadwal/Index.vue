@@ -2,6 +2,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import { useConfirm } from '@/Composables/useConfirm';
+
+const { deleteRecord } = useConfirm();
 
 const props = defineProps({
     jadwals: Object,
@@ -27,9 +30,14 @@ watch([sarpras_id, klub_id, tanggal, search], ([sid, kid, tg, s]) => {
     }, { preserveState: true, replace: true }), 300);
 });
 
-function destroyRow(id) {
-    if (!confirm('Hapus jadwal ini?')) return;
-    router.delete(route('sarpras-jadwals.destroy', id));
+function destroyRow(id, label) {
+    deleteRecord(route('sarpras-jadwals.destroy', id), {
+        title: 'Hapus Jadwal Sarpras',
+        message: 'Apakah Anda yakin ingin menghapus jadwal pemanfaatan sarana ini?',
+        itemName: label,
+        warningDetail: 'Slot waktu jadwal ini akan dibebaskan kembali dalam sistem reservasi pemanfaatan.',
+        confirmText: 'Ya, Hapus Jadwal',
+    });
 }
 </script>
 
@@ -74,7 +82,7 @@ function destroyRow(id) {
                                     <td class="px-4 py-3 text-right">
                                         <Link :href="route('sarpras-jadwals.show', j.id)" class="mr-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">Lihat</Link>
                                         <Link v-if="can?.manage" :href="route('sarpras-jadwals.edit', j.id)" class="mr-2 text-sm font-medium dark:text-gray-100 text-blue-600 hover:text-blue-800">Edit</Link>
-                                        <button v-if="can?.manage" @click="destroyRow(j.id)" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
+                                        <button v-if="can?.manage" @click="destroyRow(j.id, (j.sarpras?.nama ? j.sarpras.nama + ' (' + (j.tanggal_formatted ?? j.tanggal) + ' ' + (j.jam_mulai ?? '') + ')' : null))" class="text-sm font-medium dark:text-gray-100 text-red-600 hover:text-red-800">Hapus</button>
                                     </td>
                                 </tr>
                                 <tr v-if="!jadwals.data || jadwals.data.length===0"><td colspan="6" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Tidak ada jadwal.</td></tr>
