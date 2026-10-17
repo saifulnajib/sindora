@@ -194,4 +194,107 @@ class AtletMultiCaborTest extends TestCase
             'kelas_tanding' => 'Lari 200m',
         ]);
     }
+
+    public function test_check_nik_endpoint_detects_existing_and_new_athlete(): void
+    {
+        $atlet = Atlet::create([
+            'nama' => 'Randi Renang',
+            'nik' => '2171055555555555',
+            'cabor_id' => $this->cabor1->id,
+        ]);
+        $atlet->cabors()->attach($this->cabor1->id, ['klub_id' => $this->klub1->id]);
+
+        // Test existing NIK
+        $resExisting = $this->actingAs($this->admin)->postJson(route('atlets.check-nik'), [
+            'nik' => '2171055555555555',
+        ]);
+
+        $resExisting->assertOk();
+        $resExisting->assertJson([
+            'exists' => true,
+            'atlet' => [
+                'id' => $atlet->id,
+                'nama' => 'Randi Renang',
+                'existing_cabor_ids' => [$this->cabor1->id],
+            ],
+        ]);
+
+        // Test non-existing NIK
+        $resNew = $this->actingAs($this->admin)->postJson(route('atlets.check-nik'), [
+            'nik' => '2171099999999999',
+        ]);
+
+        $resNew->assertOk();
+        $resNew->assertJson([
+            'exists' => false,
+            'atlet' => null,
+        ]);
+    }
+
+    public function test_submitting_existing_nik_attaches_new_cabor_without_duplicating_atlet_record(): void
+    {
+        $atlet = Atlet::create([
+            'nama' => 'Doni Silat',
+            'nik' => '2171077777777777',
+            'cabor_id' => $this->cabor1->id,
+        ]);
+        $atlet->cabors()->attach($this->cabor1->id);
+
+        $initialCount = Atlet::count();
+
+        // Admin submits form with existing NIK but a new cabor (cabor2)
+        $payload = [
+            'nik' => '2171077777777777',
+            'cabors' => [
+                [
+                    'cabor_id' => $this->cabor2->id,
+                    'klub_id' => $this->klub2->id,
+                    'pelatih_id' => $this->pelatih2->id,
+                    'kelas_tanding' => 'Lari 400m',
+                    'status_pembinaan' => 'provinsi',
+                ],
+            ],
+        ];
+
+        $response = $this->actingAs($this->admin)->post(route('atlets.store'), $payload);
+
+        $response->assertRedirect(route('atlets.index'));
+        $response->assertSessionHas('success');
+
+        // Master records in atlets table must NOT increase (NO DUPLICATE)
+        $this->assertEquals($initialCount, Atlet::count());
+
+        // atlet_cabor should have the new entry
+        $this->assertDatabaseHas('atlet_cabor', [
+            'atlet_id' => $atlet->id,
+            'cabor_id' => $this->cabor2->id,
+            'kelas_tanding' => 'Lari 400m',
+        ]);
+
+        // Now atlet has 2 cabors
+        $this->assertCount(2, $atlet->fresh()->cabors);
+    }
+
+    public function test_submitting_existing_nik_with_same_cabor_fails_validation(): void
+    {
+        $atlet = Atlet::create([
+            'nama' => 'Doni Silat',
+            'nik' => '2171077777777777',
+            'cabor_id' => $this->cabor1->id,
+        ]);
+        $atlet->cabors()->attach($this->cabor1->id);
+
+        // Try submitting same cabor1 again
+        $payload = [
+            'nik' => '2171077777777777',
+            'cabors' => [
+                [
+                    'cabor_id' => $this->cabor1->id,
+                ],
+            ],
+        ];
+
+        $response = $this->actingAs($this->admin)->post(route('atlets.store'), $payload);
+        $response->assertSessionHasErrors('cabors.0.cabor_id');
+    }
 }

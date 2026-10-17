@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('organisasis', OrganisasiController::class);
     Route::resource('cabors', CaborController::class);
     Route::resource('klubs', KlubController::class);
+    Route::post('atlets/check-nik', [AtletController::class, 'checkNik'])->name('atlets.check-nik');
     Route::resource('atlets', AtletController::class);
     Route::resource('sdms', SdmController::class);
     Route::resource('sarpras', SarprasController::class)->parameters(['sarpras' => 'sarpras']);

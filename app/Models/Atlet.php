@@ -20,6 +20,7 @@ class Atlet extends Model
     protected $fillable = [
         'nama',
         'nik',
+        'nik_hash',
         'tempat_lahir',
         'tanggal_lahir',
         'jenis_kelamin',
@@ -44,6 +45,34 @@ class Atlet extends Model
     protected $attributes = [
         'status_pembinaan' => 'daerah',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Atlet $atlet) {
+            if ($atlet->isDirty('nik') && $atlet->nik) {
+                $atlet->nik_hash = self::hashNik($atlet->nik);
+            }
+        });
+    }
+
+    public static function hashNik(?string $nik): ?string
+    {
+        if (blank($nik)) {
+            return null;
+        }
+
+        return hash_hmac('sha256', trim($nik), config('app.key'));
+    }
+
+    public static function findByNik(?string $nik): ?self
+    {
+        $hash = self::hashNik($nik);
+        if (! $hash) {
+            return null;
+        }
+
+        return static::query()->where('nik_hash', $hash)->first();
+    }
 
     protected function casts(): array
     {

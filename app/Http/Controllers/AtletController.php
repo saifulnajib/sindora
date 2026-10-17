@@ -11,6 +11,7 @@ use App\Models\Cabor;
 use App\Models\Kelurahan;
 use App\Models\Klub;
 use App\Models\Sdm;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -127,6 +128,77 @@ class AtletController extends Controller
         ]);
     }
 
+    public function checkNik(Request $request): JsonResponse
+    {
+        $this->authorize('create', Atlet::class);
+
+        $validated = $request->validate([
+            'nik' => ['required', 'string', 'digits:16'],
+        ]);
+
+        $atlet = Atlet::findByNik($validated['nik']);
+
+        if (! $atlet) {
+            return response()->json([
+                'exists' => false,
+                'atlet' => null,
+            ]);
+        }
+
+        $atlet->load(['cabors', 'atletCabors.cabor', 'atletCabors.klub', 'atletCabors.pelatih', 'klub', 'cabor', 'pelatih']);
+
+        $existingCabors = $atlet->cabors->map(function ($c) {
+            return [
+                'cabor_id' => $c->id,
+                'cabor_nama' => $c->nama,
+                'cabor_kode' => $c->kode,
+                'klub_id' => $c->pivot?->klub_id,
+                'klub_nama' => $c->klub?->nama,
+                'pelatih_id' => $c->pivot?->pelatih_id,
+                'pelatih_nama' => $c->pelatih?->nama,
+                'kelas_tanding' => $c->pivot?->kelas_tanding,
+                'status_pembinaan' => $c->pivot?->status_pembinaan ?? 'daerah',
+            ];
+        })->values();
+
+        if ($atlet->atletCabors->isNotEmpty()) {
+            $existingCabors = $atlet->atletCabors->map(function ($ac) {
+                return [
+                    'cabor_id' => $ac->cabor_id,
+                    'cabor_nama' => $ac->cabor?->nama,
+                    'cabor_kode' => $ac->cabor?->kode,
+                    'klub_id' => $ac->klub_id,
+                    'klub_nama' => $ac->klub?->nama,
+                    'pelatih_id' => $ac->pelatih_id,
+                    'pelatih_nama' => $ac->pelatih?->nama,
+                    'kelas_tanding' => $ac->kelas_tanding,
+                    'status_pembinaan' => $ac->status_pembinaan ?? 'daerah',
+                ];
+            })->values();
+        }
+
+        return response()->json([
+            'exists' => true,
+            'atlet' => [
+                'id' => $atlet->id,
+                'nama' => $atlet->nama,
+                'nik' => $atlet->nik,
+                'tempat_lahir' => $atlet->tempat_lahir,
+                'tanggal_lahir' => $atlet->tanggal_lahir?->format('Y-m-d'),
+                'jenis_kelamin' => $atlet->jenis_kelamin,
+                'alamat' => $atlet->alamat,
+                'no_hp' => $atlet->no_hp,
+                'email' => $atlet->email,
+                'kelurahan_id' => $atlet->kelurahan_id,
+                'berat_badan' => $atlet->berat_badan,
+                'tinggi_badan' => $atlet->tinggi_badan,
+                'foto_url' => $atlet->foto_path ? Storage::url($atlet->foto_path) : null,
+                'existing_cabors' => $existingCabors,
+                'existing_cabor_ids' => $existingCabors->pluck('cabor_id')->unique()->values()->all(),
+            ],
+        ]);
+    }
+
     public function store(StoreAtletRequest $request): RedirectResponse
     {
         $this->authorize('create', Atlet::class);
@@ -147,6 +219,29 @@ class AtletController extends Controller
             }
         }
 
+        $existingAtlet = Atlet::findByNik($validated['nik']);
+
+        // Skenario 1: Atlet sudah terdaftar (Multi-cabor: 1 Atlet HasMany AtletCabor)
+        // Kita tidak membuat rekord atlet baru, melainkan menambahkan cabor baru ke atlet tersebut.
+        if ($existingAtlet) {
+            DB::transaction(function () use ($existingAtlet, $cabors) {
+                foreach ($cabors as $c) {
+                    AtletCabor::firstOrCreate([
+                        'atlet_id' => $existingAtlet->id,
+                        'cabor_id' => $c['cabor_id'],
+                    ], [
+                        'klub_id' => $c['klub_id'] ?? null,
+                        'pelatih_id' => $c['pelatih_id'] ?? null,
+                        'kelas_tanding' => $c['kelas_tanding'] ?? null,
+                        'status_pembinaan' => $c['status_pembinaan'] ?? 'daerah',
+                    ]);
+                }
+            });
+
+            return redirect()->route('atlets.index')->with('success', "Cabang olahraga baru berhasil ditambahkan untuk atlet {$existingAtlet->nama}.");
+        }
+
+        // Skenario 2: Atlet baru (belum terdaftar)
         $data = collect($validated)->except(['foto', 'cabors'])->toArray();
 
         // Sync first cabor to profile columns for fallback compatibility

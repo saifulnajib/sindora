@@ -43,7 +43,15 @@ class UpdateAtletRequest extends FormRequest
 
         return [
             'nama' => ['required', 'string', 'max:255'],
-            'nik' => ['required', 'string', 'digits:16', Rule::unique('atlets', 'nik')->ignore($id)->whereNull('deleted_at')],
+            'nik' => [
+                'required', 'string', 'digits:16',
+                function ($attribute, $value, $fail) use ($id) {
+                    $existing = \App\Models\Atlet::findByNik($value);
+                    if ($existing && $existing->id != $id) {
+                        $fail('NIK sudah terdaftar untuk atlet lain.');
+                    }
+                },
+            ],
             'tempat_lahir' => ['nullable', 'string', 'max:255'],
             'tanggal_lahir' => ['nullable', 'date'],
             'jenis_kelamin' => ['nullable', Rule::in(['L', 'P'])],
