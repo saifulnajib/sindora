@@ -57,7 +57,9 @@ class DashboardController extends Controller
                 return [
                     'klub' => Klub::terverifikasi()->whereIn('cabor_id', $cIds)->count(),
                     'atlet' => Atlet::terverifikasi()->where(function ($q) use ($cIds) {
-                        $q->whereIn('cabor_id', $cIds)->orWhereHas('cabors', fn ($sq) => $sq->whereIn('cabor_id', $cIds));
+                        $q->whereIn('cabor_id', $cIds)
+                            ->orWhereHas('cabors', fn ($sq) => $sq->whereIn('cabors.id', $cIds))
+                            ->orWhereHas('atletCabors', fn ($sq) => $sq->whereIn('cabor_id', $cIds));
                     })->count(),
                     'pelatih' => Sdm::terverifikasi()->where('tipe', 'pelatih')->whereIn('cabor_id', $cIds)->count(),
                     'wasit' => Sdm::terverifikasi()->where('tipe', 'wasit')->whereIn('cabor_id', $cIds)->count(),
@@ -210,7 +212,16 @@ class DashboardController extends Controller
                 $atletCount = Atlet::terverifikasi()
                     ->where(function ($q) use ($caborIds) {
                         $q->whereIn('cabor_id', $caborIds)
-                            ->orWhereHas('cabors', fn ($sq) => $sq->whereIn('cabor_id', $caborIds));
+                            ->orWhereHas('cabors', fn ($sq) => $sq->whereIn('cabors.id', $caborIds))
+                            ->orWhereHas('atletCabors', fn ($sq) => $sq->whereIn('cabor_id', $caborIds));
+                    })
+                    ->count();
+
+                $atletPendingCount = Atlet::where('verification_status', '!=', 'terverifikasi')
+                    ->where(function ($q) use ($caborIds) {
+                        $q->whereIn('cabor_id', $caborIds)
+                            ->orWhereHas('cabors', fn ($sq) => $sq->whereIn('cabors.id', $caborIds))
+                            ->orWhereHas('atletCabors', fn ($sq) => $sq->whereIn('cabor_id', $caborIds));
                     })
                     ->count();
 
@@ -224,6 +235,7 @@ class DashboardController extends Controller
             $summary[] = array_merge($meta, [
                 'cabor_count' => $caborCount,
                 'atlet_count' => $atletCount,
+                'atlet_pending_count' => $atletPendingCount ?? 0,
                 'klub_count' => $klubCount,
                 'pelatih_count' => $pelatihCount,
                 'prestasi_count' => $prestasiCount,

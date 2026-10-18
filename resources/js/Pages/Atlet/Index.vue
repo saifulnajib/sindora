@@ -12,19 +12,21 @@ const props = defineProps({
     filters: Object,
     klubs: Array,
     cabors: Array,
+    kategoriList: Array,
     can: Object,
 });
 
 const search = ref(props.filters?.search ?? '');
 const klub_id = ref(props.filters?.klub_id ?? '');
 const cabor_id = ref(props.filters?.cabor_id ?? '');
+const kategori = ref(props.filters?.kategori ?? '');
 const status_pembinaan = ref(props.filters?.status_pembinaan ?? '');
 const verification_status = ref(props.filters?.verification_status ?? '');
 
 let t = null;
-watch([search, klub_id, cabor_id, status_pembinaan, verification_status], ([s, kid, cid, sp, vs]) => {
+watch([search, klub_id, cabor_id, kategori, status_pembinaan, verification_status], ([s, kid, cid, kat, sp, vs]) => {
     clearTimeout(t);
-    t = setTimeout(() => router.get(route('atlets.index'), { search: s, klub_id: kid, cabor_id: cid, status_pembinaan: sp, verification_status: vs }, { preserveState: true, replace: true }), 300);
+    t = setTimeout(() => router.get(route('atlets.index'), { search: s, klub_id: kid, cabor_id: cid, kategori: kat, status_pembinaan: sp, verification_status: vs }, { preserveState: true, replace: true }), 300);
 });
 
 function destroyRow(id, name) {
@@ -103,6 +105,10 @@ function getVerificationLabel(status) {
                             <option value="">Semua Cabor</option>
                             <option v-for="c in cabors" :key="c.id" :value="c.id">{{ c.nama }}</option>
                         </select>
+                        <select v-model="kategori" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-600 text-sm">
+                            <option value="">Semua Kategori (Bidang)</option>
+                            <option v-for="k in kategoriList" :key="k.value" :value="k.value">{{ k.label }}</option>
+                        </select>
                         <select v-model="status_pembinaan" class="rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-600 text-sm">
                             <option value="">Semua Status</option>
                             <option value="daerah">Daerah</option>
@@ -123,7 +129,7 @@ function getVerificationLabel(status) {
                         <table class="w-full text-left text-sm">
                             <thead class="bg-gray-50 dark:bg-gray-700 text-xs uppercase text-gray-500 dark:text-gray-300">
                                 <tr>
-                                    <th class="px-4 py-3">Foto</th> <th class="px-4 py-3">Nama</th> <th class="px-4 py-3">NIK</th> <th class="px-4 py-3">Klub</th> <th class="px-4 py-3">Cabor</th> <th class="px-4 py-3">Status</th> <th class="px-4 py-3">Verifikasi</th> <th class="px-4 py-3 text-right">Aksi</th>
+                                    <th class="px-4 py-3">Foto</th> <th class="px-4 py-3">Nama</th> <th class="px-4 py-3">NIK</th> <th class="px-4 py-3">Klub</th> <th class="px-4 py-3">Cabor & Bidang</th> <th class="px-4 py-3">Status</th> <th class="px-4 py-3">Verifikasi</th> <th class="px-4 py-3 text-right">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -143,18 +149,32 @@ function getVerificationLabel(status) {
                                         <span v-else>{{ a.klub?.nama ?? '—' }}</span>
                                     </td>
                                     <td class="px-4 py-3">
-                                        <div v-if="a.cabors && a.cabors.length" class="flex flex-wrap gap-1">
-                                            <span
-                                                v-for="(c, cIdx) in a.cabors"
-                                                :key="cIdx"
-                                                class="inline-flex items-center rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-800 ring-1 ring-inset ring-red-200 dark:bg-red-950/60 dark:text-red-300 dark:ring-red-900/60"
-                                                :title="c.kelas_tanding ? `Kelas: ${c.kelas_tanding}` : ''"
-                                            >
-                                                {{ c.cabor_nama }}
-                                                <span v-if="c.kelas_tanding" class="ml-1 text-[10px] text-red-600 dark:text-red-400 font-normal">({{ c.kelas_tanding }})</span>
-                                            </span>
+                                        <div class="space-y-1">
+                                            <div v-if="a.cabors && a.cabors.length" class="flex flex-wrap gap-1">
+                                                <span
+                                                    v-for="(c, cIdx) in a.cabors"
+                                                    :key="cIdx"
+                                                    class="inline-flex items-center rounded-md bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-800 ring-1 ring-inset ring-red-200 dark:bg-red-950/60 dark:text-red-300 dark:ring-red-900/60"
+                                                    :title="c.kelas_tanding ? `Kelas: ${c.kelas_tanding}` : ''"
+                                                >
+                                                    {{ c.cabor_nama }}
+                                                    <span v-if="c.kelas_tanding" class="ml-1 text-[10px] text-red-600 dark:text-red-400 font-normal">({{ c.kelas_tanding }})</span>
+                                                </span>
+                                            </div>
+                                            <span v-else class="text-xs font-semibold text-gray-800 dark:text-gray-200">{{ a.cabor?.nama ?? '—' }}</span>
+
+                                            <!-- Badge Kategori Bidang (KONI, KORMI, DISABILITAS) -->
+                                            <div v-if="a.cabor_kategori" class="mt-0.5">
+                                                <span class="inline-flex items-center rounded-full px-2 py-0.2 text-[9.5px] font-bold uppercase tracking-wider ring-1 ring-inset"
+                                                    :class="{
+                                                        'bg-red-100 text-red-800 ring-red-200 dark:bg-red-950/80 dark:text-red-300 dark:ring-red-800': a.cabor_kategori === 'koni',
+                                                        'bg-amber-100 text-amber-800 ring-amber-200 dark:bg-amber-950/80 dark:text-amber-300 dark:ring-amber-800': a.cabor_kategori === 'kormi',
+                                                        'bg-blue-100 text-blue-800 ring-blue-200 dark:bg-blue-950/80 dark:text-blue-300 dark:ring-blue-800': a.cabor_kategori === 'disabilitas',
+                                                    }">
+                                                    {{ a.cabor_kategori }}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <span v-else>{{ a.cabor?.nama ?? '—' }}</span>
                                     </td>
                                     <td class="px-4 py-3"><span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">{{ a.status_pembinaan ?? '—' }}</span></td>
                                     <td class="px-4 py-3">

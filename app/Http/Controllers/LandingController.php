@@ -297,7 +297,8 @@ class LandingController extends Controller
                 if ($caborCount > 0) {
                     $atletQuery = Atlet::terverifikasi()->where(function ($q) use ($caborIds) {
                         $q->whereIn('cabor_id', $caborIds)
-                            ->orWhereHas('cabors', fn ($sq) => $sq->whereIn('cabors.id', $caborIds));
+                            ->orWhereHas('cabors', fn ($sq) => $sq->whereIn('cabors.id', $caborIds))
+                            ->orWhereHas('atletCabors', fn ($sq) => $sq->whereIn('cabor_id', $caborIds));
                     });
 
                     $atletCount = (clone $atletQuery)->count();

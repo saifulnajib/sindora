@@ -11,9 +11,11 @@ use App\Models\Cabor;
 use App\Models\Kelurahan;
 use App\Models\Klub;
 use App\Models\Sdm;
+use App\Enums\VerificationStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -28,6 +30,7 @@ class AtletController extends Controller
         $search = $request->string('search')->toString();
         $klubId = $request->string('klub_id')->toString();
         $caborId = $request->string('cabor_id')->toString();
+        $kategori = strtolower(trim($request->string('kategori')->toString()));
         $statusPembinaan = $request->string('status_pembinaan')->toString();
         $verificationStatus = $request->string('verification_status')->toString();
 
@@ -47,6 +50,10 @@ class AtletController extends Controller
                 $qq->where('cabor_id', $caborId)
                     ->orWhereHas('cabors', fn ($c) => $c->where('cabors.id', $caborId));
             }))
+            ->when($kategori, fn ($q) => $q->where(function ($qq) use ($kategori) {
+                $qq->whereHas('cabor', fn ($c) => $c->where('kategori', $kategori))
+                    ->orWhereHas('cabors', fn ($c) => $c->where('cabors.kategori', $kategori));
+            }))
             ->when($statusPembinaan, fn ($q) => $q->where('status_pembinaan', $statusPembinaan))
             ->when($verificationStatus, fn ($q) => $q->where('verification_status', $verificationStatus))
             ->orderBy('nama');
@@ -63,12 +70,18 @@ class AtletController extends Controller
         $paginator = $query->paginate(10)->withQueryString();
 
         $caborOptions = ($user && $user->isPengkot())
-            ? Cabor::query()->whereIn('id', $user->getAssignedCaborIds())->select('id', 'nama', 'kode')->orderBy('nama')->get()
-            : Cabor::query()->select('id', 'nama', 'kode')->orderBy('nama')->get();
+            ? Cabor::query()->whereIn('id', $user->getAssignedCaborIds())->select('id', 'nama', 'kode', 'kategori')->orderBy('nama')->get()
+            : Cabor::query()->select('id', 'nama', 'kode', 'kategori')->orderBy('nama')->get();
 
         $klubOptions = ($user && $user->isPengkot())
             ? Klub::query()->whereIn('cabor_id', $user->getAssignedCaborIds())->select('id', 'nama', 'cabor_id')->orderBy('nama')->get()
             : Klub::query()->select('id', 'nama', 'cabor_id')->orderBy('nama')->get();
+
+        $kategoriList = [
+            ['value' => 'koni', 'label' => 'KONI (Olahraga Prestasi)'],
+            ['value' => 'kormi', 'label' => 'KORMI (Olahraga Rekreasi / Masyarakat)'],
+            ['value' => 'disabilitas', 'label' => 'DISABILITAS (Olahraga Disabilitas / NPCI)'],
+        ];
 
         return Inertia::render('Atlet/Index', [
             'atlets' => [
@@ -88,11 +101,13 @@ class AtletController extends Controller
                 'search' => $search,
                 'klub_id' => $klubId,
                 'cabor_id' => $caborId,
+                'kategori' => $kategori,
                 'status_pembinaan' => $statusPembinaan,
                 'verification_status' => $verificationStatus,
             ],
             'klubs' => $klubOptions,
             'cabors' => $caborOptions,
+            'kategoriList' => $kategoriList,
             'can' => [
                 'manage' => $request->user()->can('atlet.manage'),
             ],
@@ -220,11 +235,22 @@ class AtletController extends Controller
         }
 
         $existingAtlet = Atlet::findByNik($validated['nik']);
+        $user = $request->user();
 
         // Skenario 1: Atlet sudah terdaftar (Multi-cabor: 1 Atlet HasMany AtletCabor)
         // Kita tidak membuat rekord atlet baru, melainkan menambahkan cabor baru ke atlet tersebut.
         if ($existingAtlet) {
-            DB::transaction(function () use ($existingAtlet, $cabors) {
+            DB::transaction(function () use ($existingAtlet, $cabors, $user) {
+                // Jika atlet sebelumnya masih draft dan diedit/ditambah cabor oleh admin, verifikasi otomatis
+                if ($user && ($user->hasRole('super_admin') || $user->can('verifikasi.manage')) && $existingAtlet->verification_status !== VerificationStatus::Terverifikasi) {
+                    $existingAtlet->update([
+                        'verification_status' => VerificationStatus::Terverifikasi,
+                        'verified_by' => $user->id,
+                        'verified_at' => now(),
+                        'catatan_verifikator' => 'Terverifikasi otomatis (didaftarkan oleh Administrator)',
+                    ]);
+                }
+
                 foreach ($cabors as $c) {
                     AtletCabor::firstOrCreate([
                         'atlet_id' => $existingAtlet->id,
@@ -238,11 +264,23 @@ class AtletController extends Controller
                 }
             });
 
+            self::clearCaches();
+
             return redirect()->route('atlets.index')->with('success', "Cabang olahraga baru berhasil ditambahkan untuk atlet {$existingAtlet->nama}.");
         }
 
         // Skenario 2: Atlet baru (belum terdaftar)
         $data = collect($validated)->except(['foto', 'cabors'])->toArray();
+
+        // Auto-verifikasi bagi Super Admin / Verifikator yang berwenang
+        if ($user && ($user->hasRole('super_admin') || $user->can('verifikasi.manage'))) {
+            $data['verification_status'] = VerificationStatus::Terverifikasi;
+            $data['verified_by'] = $user->id;
+            $data['verified_at'] = now();
+            $data['catatan_verifikator'] = 'Terverifikasi otomatis (didaftarkan oleh Administrator)';
+        } elseif ($user && $user->isPengkot()) {
+            $data['verification_status'] = VerificationStatus::MenungguVerifikasi;
+        }
 
         // Sync first cabor to profile columns for fallback compatibility
         if (!empty($cabors)) {
@@ -273,6 +311,8 @@ class AtletController extends Controller
                 ]);
             }
         });
+
+        self::clearCaches();
 
         return redirect()->route('atlets.index')->with('success', 'Atlet berhasil dibuat.');
     }
@@ -399,6 +439,8 @@ class AtletController extends Controller
             }
         });
 
+        self::clearCaches();
+
         return redirect()->route('atlets.index')->with('success', 'Atlet berhasil diperbarui.');
     }
 
@@ -408,6 +450,19 @@ class AtletController extends Controller
 
         $atlet->delete();
 
+        self::clearCaches();
+
         return redirect()->route('atlets.index')->with('success', 'Atlet berhasil dihapus.');
+    }
+
+    public static function clearCaches(): void
+    {
+        Cache::forget('dashboard.bidang_summary');
+        Cache::forget('landing.sebaran_kategori');
+        Cache::forget('landing.stats');
+        Cache::forget('dashboard.widgets.all');
+        Cache::forget('dashboard.widgets.koni');
+        Cache::forget('dashboard.widgets.kormi');
+        Cache::forget('dashboard.widgets.disabilitas');
     }
 }

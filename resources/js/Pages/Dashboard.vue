@@ -265,14 +265,25 @@ const pendingTotal = computed(() => pending.value.total ?? 0);
 
                                 <!-- Stats metrics inside card -->
                                 <div class="mt-4 grid grid-cols-3 gap-2 text-center">
-                                    <div class="rounded-xl bg-gray-50 p-2 dark:bg-gray-700/40">
+                                    <Link
+                                        :href="route('cabors.index', { kategori: b.key })"
+                                        class="group/cabor block rounded-xl bg-gray-50 p-2 transition hover:bg-gray-100 hover:ring-1 hover:ring-gray-300 dark:bg-gray-700/40 dark:hover:bg-gray-700"
+                                        title="Klik untuk melihat cabang olahraga kategori ini"
+                                    >
                                         <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Cabor</p>
                                         <p class="text-lg font-extrabold text-gray-900 dark:text-white">{{ b.cabor_count }}</p>
-                                    </div>
-                                    <div class="rounded-xl bg-gray-50 p-2 dark:bg-gray-700/40">
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Atlet</p>
-                                        <p class="text-lg font-extrabold text-gray-900 dark:text-white">{{ b.atlet_count }}</p>
-                                    </div>
+                                    </Link>
+                                    <Link
+                                        :href="route('atlets.index', { kategori: b.key })"
+                                        class="group/atlet block rounded-xl bg-gray-50 p-2 transition hover:bg-red-50 hover:ring-1 hover:ring-red-200 dark:bg-gray-700/40 dark:hover:bg-red-950/40 dark:hover:ring-red-800"
+                                        title="Klik untuk melihat daftar atlet kategori ini"
+                                    >
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium group-hover/atlet:text-red-700 dark:group-hover/atlet:text-red-300">Atlet</p>
+                                        <p class="text-lg font-extrabold text-gray-900 dark:text-white group-hover/atlet:text-red-700 dark:group-hover/atlet:text-red-300">{{ b.atlet_count }}</p>
+                                        <span v-if="b.atlet_pending_count > 0" class="block text-[9.5px] font-semibold text-amber-600 dark:text-amber-400">
+                                            +{{ b.atlet_pending_count }} verif
+                                        </span>
+                                    </Link>
                                     <div class="rounded-xl bg-gray-50 p-2 dark:bg-gray-700/40">
                                         <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Klub</p>
                                         <p class="text-lg font-extrabold text-gray-900 dark:text-white">{{ b.klub_count }}</p>
