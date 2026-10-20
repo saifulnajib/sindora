@@ -4,6 +4,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
+import SearchableSelect from '@/Components/SearchableSelect.vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 
@@ -179,18 +180,18 @@ function submit() {
                         <div class="space-y-4">
                             <div>
                                 <InputLabel for="organisasi_id" value="Induk Organisasi Keolahragaan" />
-                                <select
+                                <SearchableSelect
                                     id="organisasi_id"
                                     v-model="form.organisasi_id"
+                                    :options="organisasis"
+                                    sub-label-key="singkatan"
                                     :disabled="!canEditCore"
-                                    class="mt-1 block w-full rounded-lg border-gray-300 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-red-500 focus:ring-red-500 disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-gray-800"
                                     :required="canEditCore"
-                                >
-                                    <option value="">— Pilih Induk Organisasi —</option>
-                                    <option v-for="o in organisasis" :key="o.id" :value="o.id">
-                                        {{ o.nama }} ({{ o.singkatan ?? '-' }})
-                                    </option>
-                                </select>
+                                    placeholder="— Pilih Induk Organisasi —"
+                                    search-placeholder="Ketik nama atau singkatan induk organisasi..."
+                                    :error="!!form.errors.organisasi_id"
+                                    class="mt-1"
+                                />
                                 <InputError :message="form.errors.organisasi_id" class="mt-1" />
                             </div>
 

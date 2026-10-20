@@ -275,10 +275,6 @@ const fillForm = (acc) => {
                             <InputError class="mt-2" :message="form.errors.email" />
                         </div>
                         <div>
-                            <div class="flex items-center justify-between">
-                                <InputLabel for="password" value="Password" class="text-slate-700 dark:text-gray-300" />
-                                <Link v-if="canResetPassword" :href="route('password.request')" class="text-xs font-semibold text-slate-500 hover:text-slate-700 underline">Lupa password?</Link>
-                            </div>
                             <TextInput id="password" type="password" class="mt-1.5 block w-full rounded-xl border-slate-200 focus:border-[#7f1d1d] focus:ring-[#7f1d1d]" v-model="form.password" required autocomplete="current-password" placeholder="••••••••" />
                             <InputError class="mt-2" :message="form.errors.password" />
                         </div>

@@ -4,6 +4,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
+import SearchableSelect from '@/Components/SearchableSelect.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -88,10 +89,17 @@ const medaliOptions = [
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="cabor_id" value="Cabor *" />
-                                <select id="cabor_id" v-model="form.cabor_id" :disabled="isShow" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500 dark:focus:border-indigo-600 text-sm" required>
-                                    <option value="">— Pilih Cabor —</option>
-                                    <option v-for="c in cabors" :key="c.id" :value="c.id">{{ c.nama }}</option>
-                                </select>
+                                <SearchableSelect
+                                    id="cabor_id"
+                                    v-model="form.cabor_id"
+                                    :options="cabors"
+                                    :disabled="isShow"
+                                    required
+                                    placeholder="— Pilih Cabor —"
+                                    search-placeholder="Ketik nama atau singkatan cabor..."
+                                    :error="!!form.errors.cabor_id"
+                                    class="mt-1"
+                                />
                                 <InputError :message="form.errors.cabor_id" class="mt-2" />
                             </div>
                             <div>

@@ -4,6 +4,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
+import SearchableSelect from '@/Components/SearchableSelect.vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 import axios from 'axios';
@@ -589,23 +590,18 @@ function submit() {
                                         <!-- Dropdown Cabor -->
                                         <div>
                                             <InputLabel :for="'cabor_' + idx" value="Pilih Cabang Olahraga *" />
-                                            <select
+                                            <SearchableSelect
                                                 :id="'cabor_' + idx"
                                                 v-model="item.cabor_id"
+                                                :options="availableCabors"
                                                 :disabled="isShow"
+                                                :disabled-values="form.cabors.filter((_, oIdx) => oIdx !== idx).map(o => o.cabor_id).filter(Boolean)"
                                                 required
-                                                class="mt-1 block w-full rounded-lg border-gray-300 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-red-500 focus:ring-red-500"
-                                            >
-                                                <option value="">— Pilih Cabang Olahraga —</option>
-                                                <option
-                                                    v-for="c in availableCabors"
-                                                    :key="c.id"
-                                                    :value="c.id"
-                                                    :disabled="form.cabors.some((other, oIdx) => oIdx !== idx && other.cabor_id == c.id)"
-                                                >
-                                                    {{ c.nama }} ({{ c.kode || '-' }})
-                                                </option>
-                                            </select>
+                                                placeholder="— Pilih Cabang Olahraga —"
+                                                search-placeholder="Ketik nama atau singkatan cabor..."
+                                                :error="!!form.errors[`cabors.${idx}.cabor_id`]"
+                                                class="mt-1"
+                                            />
                                             <InputError :message="form.errors[`cabors.${idx}.cabor_id`]" class="mt-1" />
                                         </div>
 
