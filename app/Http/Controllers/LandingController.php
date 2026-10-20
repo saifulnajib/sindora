@@ -57,7 +57,7 @@ class LandingController extends Controller
         // 2. Statistik per Cabor (Atlet, Pelatih, Prestasi)
         $caborStats = Cache::remember('landing.cabor_stats', 60, function () {
             return Cabor::query()
-                ->select('id', 'nama', 'kode')
+                ->select('id', 'nama', 'kode', 'kategori')
                 ->withCount([
                     'atlets as atlet_count' => fn ($q) => $q->terverifikasi(),
                     'sdms as pelatih_count' => fn ($q) => $q->terverifikasi()->where('tipe', TipeSdm::Pelatih),
@@ -73,6 +73,7 @@ class LandingController extends Controller
                     'id' => $c->id,
                     'nama' => $c->nama,
                     'kode' => $c->kode,
+                    'kategori' => $c->kategori,
                     'atlet_count' => (int) $c->atlet_count,
                     'pelatih_count' => (int) $c->pelatih_count,
                     'prestasi_count' => (int) $c->prestasi_count,
@@ -224,7 +225,7 @@ class LandingController extends Controller
         // 7. Daftar Pelatih Terverifikasi (Public-Safe)
         $pelatihs = Sdm::terverifikasi()
             ->where('tipe', TipeSdm::Pelatih)
-            ->with(['cabor:id,nama,kode', 'klub:id,nama'])
+            ->with(['cabor:id,nama,kode,kategori', 'klub:id,nama'])
             ->withCount(['atlets as binaan_count' => fn ($q) => $q->terverifikasi()])
             ->orderByDesc('binaan_count')
             ->orderBy('nama')
@@ -235,6 +236,7 @@ class LandingController extends Controller
                 'nama' => $s->nama,
                 'jenis_kelamin' => $s->jenis_kelamin,
                 'cabor_nama' => $s->cabor?->nama ?? '-',
+                'cabor_kategori' => $s->cabor?->kategori,
                 'klub_nama' => $s->klub?->nama ?? '-',
                 'level' => $s->level,
                 'spesialisasi' => $s->spesialisasi,

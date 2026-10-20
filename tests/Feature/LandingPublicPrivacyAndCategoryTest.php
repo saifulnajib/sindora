@@ -126,6 +126,10 @@ class LandingPublicPrivacyAndCategoryTest extends TestCase
             ->where('sebaranKategori.items.1.atlet_count', 1)
             ->where('sebaranKategori.items.2.key', 'disabilitas')
             ->where('sebaranKategori.items.2.atlet_count', 1)
+            ->has('caborStats', 3)
+            ->where('caborStats.0.kategori', fn ($k) => in_array($k, ['koni', 'kormi', 'disabilitas']))
+            ->has('atlets', 3)
+            ->where('atlets.0.cabor_kategori', fn ($k) => in_array($k, ['koni', 'kormi', 'disabilitas']))
         );
     }
 }

@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import CategoryPieChart from '@/Components/CategoryPieChart.vue';
 
 const page = usePage();
 const authUser = computed(() => page.props.auth?.user ?? null);
@@ -39,17 +40,29 @@ const props = defineProps({
     },
 });
 
-// Active tab for explorer
-const activeTab = ref('prestasi'); // 'prestasi' | 'atlet' | 'pelatih' | 'cabor'
+// Active tab for explorer: if no prestasi yet, default to atlet so explorer is not empty
+const activeTab = ref(props.stats.prestasi_total > 0 ? 'prestasi' : 'atlet');
 
-// Search & Cabor filter state
+// Search & Cabor & Kategori filter state
 const searchQuery = ref('');
 const selectedCabor = ref('');
+const selectedKategori = ref('');
+
+// Handler when user clicks category from CategoryPieChart
+function handleCategoryFilter(item) {
+    activeTab.value = 'atlet';
+    selectedKategori.value = item?.key || '';
+    const el = document.getElementById('explorer');
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+    }
+}
 
 // Computed filtered Prestasi
 const filteredPrestasi = computed(() => {
     return props.recentPrestasis.filter((item) => {
         const matchCabor = !selectedCabor.value || item.cabor_nama === selectedCabor.value;
+        const matchKategori = !selectedKategori.value || item.cabor_kategori === selectedKategori.value;
         const q = searchQuery.value.toLowerCase();
         const matchQuery =
             !q ||
@@ -57,7 +70,7 @@ const filteredPrestasi = computed(() => {
             item.kejuaraan_nama.toLowerCase().includes(q) ||
             item.cabor_nama.toLowerCase().includes(q) ||
             (item.kategori_kelas && item.kategori_kelas.toLowerCase().includes(q));
-        return matchCabor && matchQuery;
+        return matchCabor && matchKategori && matchQuery;
     });
 });
 
@@ -65,6 +78,7 @@ const filteredPrestasi = computed(() => {
 const filteredAtlets = computed(() => {
     return props.atlets.filter((item) => {
         const matchCabor = !selectedCabor.value || item.cabor_nama === selectedCabor.value;
+        const matchKategori = !selectedKategori.value || item.cabor_kategori === selectedKategori.value;
         const q = searchQuery.value.toLowerCase();
         const matchQuery =
             !q ||
@@ -72,7 +86,7 @@ const filteredAtlets = computed(() => {
             item.cabor_nama.toLowerCase().includes(q) ||
             item.klub_nama.toLowerCase().includes(q) ||
             item.kecamatan_nama.toLowerCase().includes(q);
-        return matchCabor && matchQuery;
+        return matchCabor && matchKategori && matchQuery;
     });
 });
 
@@ -80,6 +94,7 @@ const filteredAtlets = computed(() => {
 const filteredPelatihs = computed(() => {
     return props.pelatihs.filter((item) => {
         const matchCabor = !selectedCabor.value || item.cabor_nama === selectedCabor.value;
+        const matchKategori = !selectedKategori.value || item.cabor_kategori === selectedKategori.value;
         const q = searchQuery.value.toLowerCase();
         const matchQuery =
             !q ||
@@ -87,7 +102,7 @@ const filteredPelatihs = computed(() => {
             item.cabor_nama.toLowerCase().includes(q) ||
             (item.level && item.level.toLowerCase().includes(q)) ||
             (item.spesialisasi && item.spesialisasi.toLowerCase().includes(q));
-        return matchCabor && matchQuery;
+        return matchCabor && matchKategori && matchQuery;
     });
 });
 
@@ -97,7 +112,8 @@ const filteredCaborStats = computed(() => {
         const q = searchQuery.value.toLowerCase();
         const matchQuery = !q || item.nama.toLowerCase().includes(q) || (item.kode && item.kode.toLowerCase().includes(q));
         const matchCabor = !selectedCabor.value || item.nama === selectedCabor.value;
-        return matchQuery && matchCabor;
+        const matchKategori = !selectedKategori.value || item.kategori === selectedKategori.value;
+        return matchQuery && matchCabor && matchKategori;
     });
 });
 
@@ -394,7 +410,10 @@ function getMedaliBadge(medali) {
                     <div class="mt-6">
                         <div class="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">
                             <span>Proporsi Sebaran Tiap Kategori</span>
-                            <span class="text-[11px] text-slate-500 font-normal">Persentase dari total atlet binaan terverifikasi</span>
+                            <a href="#visualisasi-grafik" class="inline-flex items-center gap-1 text-[11px] font-extrabold text-red-700 hover:text-red-800 dark:text-red-400">
+                                <span>Lihat Grafik Pie Chart Lengkap</span>
+                                <span>↓</span>
+                            </a>
                         </div>
                         <div class="flex h-3.5 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800">
                             <div
@@ -491,30 +510,164 @@ function getMedaliBadge(medali) {
                     </div>
                 </div>
 
-                <!-- CHARTS & BREAKDOWN GRID -->
-                <div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-12">
-                    <!-- TREN MEDALI TAHUNAN (BAR CHART) -->
-                    <div class="lg:col-span-7 rounded-2xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950/40">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="text-base font-bold text-slate-900 dark:text-white">Tren Medali Tahunan</h3>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">Pertumbuhan medali dari tahun ke tahun</p>
-                            </div>
-                            <div class="flex items-center gap-3 text-xs">
-                                <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-sm bg-amber-400"></span> Emas</span>
-                                <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-sm bg-slate-400"></span> Perak</span>
-                                <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-sm bg-orange-400"></span> Perunggu</span>
-                            </div>
+                <!-- CHARTS & VISUAL ANALYTICS GRID -->
+                <div id="visualisasi-grafik" class="mt-10 space-y-8">
+                    <div class="grid grid-cols-1 gap-8 lg:grid-cols-12 items-stretch">
+                        <!-- 1. PIE CHART: DISTRIBUSI ATLET BERDASARKAN KATEGORI -->
+                        <div class="lg:col-span-7">
+                            <CategoryPieChart
+                                :sebaran-kategori="sebaranKategori"
+                                title="Distribusi Atlet Berdasarkan Kategori"
+                                subtitle="Proporsi 1.702 atlet binaan Kota Tanjungpinang dalam 3 pilar: KONI, KORMI, dan DISABILITAS"
+                                :show-toggle="true"
+                                @select-category="handleCategoryFilter"
+                            />
                         </div>
 
-                        <div class="mt-8 space-y-5">
-                            <template v-if="trenMedali.length > 0">
+                        <!-- 2. REKAM JEJAK MEDALI & PRESTASI CARD -->
+                        <div class="lg:col-span-5 flex flex-col justify-between rounded-3xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/60 p-6 sm:p-7 shadow-xs dark:border-slate-800 dark:from-slate-900/90 dark:to-slate-950/60">
+                            <div>
+                                <!-- Header -->
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800/80">
+                                    <div>
+                                        <div class="inline-flex items-center gap-1.5 rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-extrabold text-amber-800 dark:bg-amber-950/70 dark:text-amber-300">
+                                            <span>🏅</span>
+                                            <span>Rekam Jejak Prestasi</span>
+                                        </div>
+                                        <h3 class="mt-1.5 text-lg font-black text-slate-900 dark:text-white">
+                                            Capaian & Medali Kejuaraan
+                                        </h3>
+                                    </div>
+                                    <span
+                                        v-if="stats.prestasi_total === 0"
+                                        class="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700 border border-amber-200/80 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/60"
+                                    >
+                                        Verifikasi Berjalan
+                                    </span>
+                                    <span
+                                        v-else
+                                        class="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/60"
+                                    >
+                                        {{ stats.prestasi_total }} Terverifikasi
+                                    </span>
+                                </div>
+
+                                <!-- Medal Badges Shelf -->
+                                <div class="mt-4 grid grid-cols-3 gap-2.5">
+                                    <div class="rounded-2xl border border-amber-200/80 bg-amber-50/70 p-3 text-center dark:border-amber-900/50 dark:bg-amber-950/30">
+                                        <span class="text-xl">🥇</span>
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">Emas</p>
+                                        <p class="text-xl font-black text-amber-900 dark:text-amber-100">{{ stats.medali_emas }}</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-100/70 p-3 text-center dark:border-slate-700 dark:bg-slate-800/50">
+                                        <span class="text-xl">🥈</span>
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Perak</p>
+                                        <p class="text-xl font-black text-slate-900 dark:text-slate-100">{{ stats.medali_perak }}</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-orange-200/80 bg-orange-50/70 p-3 text-center dark:border-orange-900/50 dark:bg-orange-950/30">
+                                        <span class="text-xl">🥉</span>
+                                        <p class="text-[11px] font-bold uppercase tracking-wider text-orange-800 dark:text-orange-300">Perunggu</p>
+                                        <p class="text-xl font-black text-orange-900 dark:text-orange-100">{{ stats.medali_perunggu }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- IF PRESTASI > 0: Show Annual Trends & Competition Level -->
+                                <div v-if="stats.prestasi_total > 0" class="mt-5 space-y-4">
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300">Tren Medali Tahunan:</p>
+                                    <div v-for="t in trenMedali" :key="t.tahun" class="space-y-1">
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="font-bold text-slate-800 dark:text-slate-200">Tahun {{ t.tahun }}</span>
+                                            <span class="font-semibold text-slate-600 dark:text-slate-400">{{ t.total }} Medali</span>
+                                        </div>
+                                        <div class="flex h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                                            <div :style="{ width: ((t.emas / maxTrenMedali) * 100) + '%' }" class="bg-amber-400" :title="`Emas: ${t.emas}`"></div>
+                                            <div :style="{ width: ((t.perak / maxTrenMedali) * 100) + '%' }" class="bg-slate-400" :title="`Perak: ${t.perak}`"></div>
+                                            <div :style="{ width: ((t.perunggu / maxTrenMedali) * 100) + '%' }" class="bg-orange-400" :title="`Perunggu: ${t.perunggu}`"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800">
+                                        <p class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Capaian per Tingkat Kejuaraan:</p>
+                                        <div class="space-y-2">
+                                            <div v-for="lvl in prestasiByTingkat.slice(0, 3)" :key="lvl.tingkat" class="flex items-center justify-between text-xs">
+                                                <span class="text-slate-600 dark:text-slate-400">{{ lvl.label }}</span>
+                                                <span class="font-bold text-slate-800 dark:text-slate-200">{{ lvl.total }} total</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- IF PRESTASI === 0: Explanatory Card -->
+                                <div v-else class="mt-5 rounded-2xl border border-dashed border-amber-200/90 bg-amber-50/50 p-4.5 dark:border-amber-900/50 dark:bg-amber-950/20">
+                                    <div class="flex items-start gap-3">
+                                        <span class="text-2xl shrink-0">📋</span>
+                                        <div>
+                                            <h4 class="text-xs font-bold text-amber-900 dark:text-amber-200">
+                                                Data Prestasi Belum Terinput
+                                            </h4>
+                                            <p class="mt-1 text-[11.5px] leading-relaxed text-amber-800/90 dark:text-amber-300/80">
+                                                Saat ini basis data <b>1.702 Atlet</b> dan <b>424 Pelatih</b> telah terdaftar resmi di sistem SINDORA. Rekam jejak medali kejuaraan sedang dalam tahap validasi dan verifikasi dokumen oleh DISPORA Tanjungpinang.
+                                            </p>
+                                            <p class="mt-2 text-[11px] font-medium text-amber-700/80 dark:text-amber-400/70">
+                                                ℹ️ Grafik medali akan aktif otomatis segera setelah data prestasi disetujui.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card Footer CTA Actions -->
+                            <div class="mt-6 border-t border-slate-100 pt-4 dark:border-slate-800/80">
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+                                    <button
+                                        type="button"
+                                        @click="activeTab = 'atlet'; document.getElementById('explorer')?.scrollIntoView({ behavior: 'smooth' })"
+                                        class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 shadow-2xs"
+                                    >
+                                        <span>🏃</span>
+                                        <span>Lihat 1.702 Atlet Terbina</span>
+                                    </button>
+                                    <Link
+                                        v-if="authUser"
+                                        :href="route('prestasis.create')"
+                                        class="inline-flex items-center justify-center gap-1 rounded-xl bg-red-600 px-3.5 py-2 text-xs font-bold text-white transition hover:bg-red-700 shadow-2xs"
+                                    >
+                                        <span>+ Input Prestasi</span>
+                                    </Link>
+                                    <Link
+                                        v-else
+                                        :href="route('login')"
+                                        class="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                                    >
+                                        <span>Login Admin DISPORA →</span>
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FULL CHARTS GRID (Visible when stats.prestasi_total > 0) -->
+                    <div v-if="stats.prestasi_total > 0" class="grid grid-cols-1 gap-8 lg:grid-cols-12">
+                        <!-- TREN MEDALI TAHUNAN (BAR CHART) -->
+                        <div class="lg:col-span-7 rounded-2xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950/40">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-base font-bold text-slate-900 dark:text-white">Tren Medali Tahunan</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">Pertumbuhan medali dari tahun ke tahun</p>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs">
+                                    <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-sm bg-amber-400"></span> Emas</span>
+                                    <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-sm bg-slate-400"></span> Perak</span>
+                                    <span class="flex items-center gap-1"><span class="h-2.5 w-2.5 rounded-sm bg-orange-400"></span> Perunggu</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-8 space-y-5">
                                 <div v-for="t in trenMedali" :key="t.tahun" class="space-y-1.5">
                                     <div class="flex items-center justify-between text-xs">
                                         <span class="font-bold text-slate-800 dark:text-slate-200">Tahun {{ t.tahun }}</span>
                                         <span class="font-semibold text-slate-600 dark:text-slate-400">{{ t.total }} Medali</span>
                                     </div>
-                                    <!-- Multi-segmented Progress bar -->
                                     <div class="flex h-4 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
                                         <div
                                             :style="{ width: ((t.emas / maxTrenMedali) * 100) + '%' }"
@@ -533,41 +686,37 @@ function getMedaliBadge(medali) {
                                         ></div>
                                     </div>
                                 </div>
-                            </template>
-                            <div v-else class="flex flex-col items-center justify-center py-10 text-center">
-                                <div class="text-3xl">🏅</div>
-                                <p class="mt-2 text-sm font-medium text-slate-500 dark:text-slate-400">Belum ada riwayat tren tahunan yang tercatat</p>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- PRESTASI MENURUT TINGKAT KEJUARAAN -->
-                    <div class="lg:col-span-5 rounded-2xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950/40">
-                        <div>
-                            <h3 class="text-base font-bold text-slate-900 dark:text-white">Capaian per Tingkat Kejuaraan</h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">Distribusi medali berdasarkan level kompetisi</p>
-                        </div>
+                        <!-- PRESTASI MENURUT TINGKAT KEJUARAAN -->
+                        <div class="lg:col-span-5 rounded-2xl border border-slate-200 bg-slate-50/50 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950/40">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900 dark:text-white">Capaian per Tingkat Kejuaraan</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Distribusi medali berdasarkan level kompetisi</p>
+                            </div>
 
-                        <div class="mt-6 space-y-4">
-                            <div
-                                v-for="lvl in prestasiByTingkat"
-                                :key="lvl.tingkat"
-                                class="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs dark:border-slate-800 dark:bg-slate-900"
-                            >
-                                <div class="flex items-center justify-between text-xs">
-                                    <span class="font-bold text-slate-800 dark:text-slate-200">{{ lvl.label }}</span>
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-semibold text-slate-700 dark:text-slate-300">{{ lvl.total }} total</span>
-                                        <span v-if="lvl.emas > 0" class="rounded bg-amber-100 px-1.5 py-0.2 text-[10px] font-bold text-amber-800 dark:bg-amber-950/80 dark:text-amber-300">
-                                             🥇 {{ lvl.emas }} Emas
-                                        </span>
+                            <div class="mt-6 space-y-4">
+                                <div
+                                    v-for="lvl in prestasiByTingkat"
+                                    :key="lvl.tingkat"
+                                    class="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-xs dark:border-slate-800 dark:bg-slate-900"
+                                >
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="font-bold text-slate-800 dark:text-slate-200">{{ lvl.label }}</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-semibold text-slate-700 dark:text-slate-300">{{ lvl.total }} total</span>
+                                            <span v-if="lvl.emas > 0" class="rounded bg-amber-100 px-1.5 py-0.2 text-[10px] font-bold text-amber-800 dark:bg-amber-950/80 dark:text-amber-300">
+                                                 🥇 {{ lvl.emas }} Emas
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                                    <div
-                                        :style="{ width: maxTingkatMedali > 0 ? ((lvl.total / maxTingkatMedali) * 100) + '%' : '0%' }"
-                                        class="h-full rounded-full bg-gradient-to-r from-red-800 via-red-700 to-rose-600 transition-all duration-500"
-                                    ></div>
+                                    <div class="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                                        <div
+                                            :style="{ width: maxTingkatMedali > 0 ? ((lvl.total / maxTingkatMedali) * 100) + '%' : '0%' }"
+                                            class="h-full rounded-full bg-gradient-to-r from-red-800 via-red-700 to-rose-600 transition-all duration-500"
+                                        ></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -660,7 +809,17 @@ function getMedaliBadge(medali) {
                         />
                     </div>
 
-                    <div class="flex items-center gap-3">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <select
+                            v-model="selectedKategori"
+                            class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-900 focus:border-red-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-700/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        >
+                            <option value="">Semua Kategori</option>
+                            <option value="koni">KONI (Prestasi)</option>
+                            <option value="kormi">KORMI (Masyarakat)</option>
+                            <option value="disabilitas">DISABILITAS (NPCI)</option>
+                        </select>
+
                         <select
                             v-model="selectedCabor"
                             class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-900 focus:border-red-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-700/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
@@ -672,8 +831,8 @@ function getMedaliBadge(medali) {
                         </select>
 
                         <button
-                            v-if="searchQuery || selectedCabor"
-                            @click="searchQuery = ''; selectedCabor = ''"
+                            v-if="searchQuery || selectedCabor || selectedKategori"
+                            @click="searchQuery = ''; selectedCabor = ''; selectedKategori = ''"
                             class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                         >
                             Reset
