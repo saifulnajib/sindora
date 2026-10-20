@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
             WilayahSeeder::class,
             RolePermissionSeeder::class,
             DemoUserSeeder::class,
+            ProductionDataSeeder::class,
+            DummyPelatihSeeder::class,
+            DummyAtletSeeder::class,
         ]);
     }
 }
